@@ -6,6 +6,26 @@
     --muted: #88857d;
     --error: #ff6b6b;
 
+    // Typography scale
+    --text-xs: 0.75rem;    // 12px — meta, timestamps, small pills
+    --text-sm: 0.8125rem;  // 13px — secondary/list body text
+    --text-base: 0.875rem; // 14px — default UI text, row titles
+    --text-md: 0.9375rem;  // 15px — inputs, primary buttons
+    --text-lg: 1.125rem;   // 18px — icon buttons, subtitle
+    --text-xl: 2.5rem;     // 40px — page title
+
+    // Spacing scale (px — layout grid, not typographic)
+    --space-2: 2px;
+    --space-4: 4px;
+    --space-6: 6px;
+    --space-8: 8px;
+    --space-10: 10px;
+    --space-12: 12px;
+    --space-16: 16px;
+    --space-24: 24px;
+    --space-32: 32px;
+    --space-64: 64px;
+
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
         sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
     color-scheme: dark;

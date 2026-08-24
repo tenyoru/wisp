@@ -1,0 +1,51 @@
+// Below this, a fixed 196px sidebar would eat most of the window.
+$collapse-width: 640px;
+
+.sidebar {
+    width: 196px;
+    flex: 0 0 auto;
+    height: 100%;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    padding: var(--space-28) var(--space-24);
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+
+    svg { flex-shrink: 0; }
+
+    &:hover { color: var(--text); }
+
+    &.is-active {
+        color: var(--text);
+        font-weight: 600;
+        cursor: default;
+    }
+}
+
+@media (max-width: $collapse-width) {
+    .sidebar {
+        width: 64px;
+        padding: var(--space-28) var(--space-12);
+    }
+
+    .sidebar-item {
+        justify-content: center;
+
+        span { display: none; }
+    }
+}

@@ -47,6 +47,12 @@
     &:first-child { border-top: none; padding-top: 0; }
 }
 
+.item-row-summary {
+    cursor: pointer;
+    list-style: none;
+    &::-webkit-details-marker { display: none; }
+}
+
 .item-row-title {
     font-weight: 600;
     font-size: 13.5px;
@@ -66,6 +72,37 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+.item-preview {
+    margin-top: 10px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    -webkit-user-select: text;
+    user-select: text;
+
+    > :first-child { margin-top: 0; }
+
+    p, ul, ol, blockquote, pre, table { margin: 0.75em 0; }
+    h1, h2, h3, h4 { margin: 1em 0 0.4em; line-height: 1.3; }
+    a { color: var(--text); }
+    img { max-width: 100%; border-radius: 6px; }
+    code { background: var(--surface); border-radius: 4px; padding: 1px 4px; font-size: 0.9em; }
+    pre {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 10px;
+        overflow-x: auto;
+        code.hljs { background: none; padding: 0; }
+    }
+    blockquote {
+        border-left: 2px solid var(--border);
+        padding-left: 10px;
+        color: var(--muted);
+    }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; }
 }
 
 .feed-row-icon {

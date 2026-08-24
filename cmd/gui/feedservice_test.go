@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -351,6 +352,60 @@ func TestFeedServiceListItems(t *testing.T) {
 // feed URL — AddFeed no longer auto-discovers a feed from it (that choice
 // now belongs to the caller via DiscoverFeeds, tested below), so it should
 // fail rather than silently guessing.
+// has contentEncoded to avoid a live Readability fetch of the item's link
+const fixtureFeedWithContent = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+	<title>Fixture Feed</title>
+	<item>
+		<title>Full Article</title>
+		<link>https://example.com/full</link>
+		<description>teaser</description>
+		<content:encoded><![CDATA[<p>full body text</p>]]></content:encoded>
+	</item>
+</channel>
+</rss>`
+
+func TestFeedServiceItemMarkdown(t *testing.T) {
+	ctx := context.Background()
+	svc, _ := newTestFeedService(t)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/rss+xml")
+		w.Write([]byte(fixtureFeedWithContent))
+	}))
+	defer srv.Close()
+
+	feed, err := svc.AddFeed(ctx, srv.URL)
+	if err != nil {
+		t.Fatalf("AddFeed: %v", err)
+	}
+	items, err := svc.ListItems(ctx, feed.ID)
+	if err != nil {
+		t.Fatalf("ListItems: %v", err)
+	}
+	if len(items) != 1 {
+		t.Fatalf("len(ListItems) = %d, want 1", len(items))
+	}
+
+	md, err := svc.ItemMarkdown(ctx, items[0].ID)
+	if err != nil {
+		t.Fatalf("ItemMarkdown: %v", err)
+	}
+	if !strings.Contains(md, "full body text") {
+		t.Errorf("ItemMarkdown = %q, want it to contain the article body", md)
+	}
+}
+
+func TestFeedServiceItemMarkdownRejectsUnknownID(t *testing.T) {
+	ctx := context.Background()
+	svc, _ := newTestFeedService(t)
+
+	if _, err := svc.ItemMarkdown(ctx, 99999); err == nil {
+		t.Fatal("ItemMarkdown(99999): expected an error for an unknown item id")
+	}
+}
+
 func TestFeedServiceAddFeedFailsOnPlainWebpage(t *testing.T) {
 	ctx := context.Background()
 	svc, _ := newTestFeedService(t)

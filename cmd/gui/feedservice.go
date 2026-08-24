@@ -10,6 +10,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"wisp/internal/api"
+	"wisp/internal/article"
 	"wisp/internal/db"
 	"wisp/internal/feed"
 	"wisp/internal/podcast"
@@ -185,6 +186,17 @@ func (s *FeedService) ItemCount(ctx context.Context, feedID int64) (int, error) 
 // ListItems returns feedID's items, newest first.
 func (s *FeedService) ListItems(ctx context.Context, feedID int64) ([]api.Item, error) {
 	return s.store.ListItems(ctx, &feedID)
+}
+
+func (s *FeedService) ItemMarkdown(ctx context.Context, itemID int64) (string, error) {
+	item, err := s.store.GetItem(ctx, itemID)
+	if err != nil {
+		return "", err
+	}
+	if item == nil {
+		return "", fmt.Errorf("no such item: %d", itemID)
+	}
+	return article.ResolveArticleMarkdown(item.Link, item.ContentEncoded, item.Description)
 }
 
 // SearchPodcasts queries iTunes for podcasts matching term.

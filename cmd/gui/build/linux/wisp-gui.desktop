@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=wisp-gui
+Exec=wisp-gui
+Icon=wisp-gui
+Categories=Development;
+Terminal=false
+Keywords=wails
+Version=1.0
+StartupNotify=false

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=wisp
+Comment=RSS reader for podcasts and articles with local-Whisper shadowing practice
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/wisp-gui %u
+Terminal=false
+Type=Application
+Icon=wisp-gui
+Categories=Utility;
+StartupWMClass=wisp-gui
+
+ 

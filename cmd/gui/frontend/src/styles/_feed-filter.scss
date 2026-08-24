@@ -1,0 +1,26 @@
+.feed-list-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 1.5rem 0 0;
+}
+
+.feed-filter {
+    display: flex;
+    gap: 2px;
+}
+
+.feed-filter-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 6px;
+
+    &:hover { color: var(--text); }
+    &.is-active { color: var(--bg); background: var(--text); }
+}

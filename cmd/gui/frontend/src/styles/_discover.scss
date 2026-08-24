@@ -1,0 +1,64 @@
+.discover-panel {
+    margin-top: 0.75rem;
+
+    summary {
+        cursor: pointer;
+        list-style: none;
+        &::-webkit-details-marker { display: none; }
+    }
+
+    .add-feed-row { margin-top: 0.5rem; }
+}
+
+// Shared by the iTunes search panel and the add-feed multi-feed picker.
+.discover-results {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.discover-result {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+
+    &:first-child { border-top: none; padding-top: 0; }
+}
+
+.discover-result-artwork {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    object-fit: cover;
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+.discover-result-artwork-fallback {
+    background: var(--border);
+}
+
+.discover-result-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.discover-result-add {
+    flex: 0 0 auto;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 12.5px;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 6px;
+
+    &:hover { border-color: var(--muted); }
+    &:disabled { cursor: default; opacity: 0.6; }
+}

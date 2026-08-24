@@ -1,0 +1,33 @@
+root = "."
+tmp_dir = "cmd/gui/tmp"
+
+[build]
+cmd = "go build -tags server -o ./cmd/gui/tmp/wisp-gui-server ./cmd/gui"
+entrypoint = ["./cmd/gui/tmp/wisp-gui-server"]
+# .go anywhere in the module triggers a rebuild. frontend/dist is included
+# too (js/html) so a vite rebuild — which only writes there, never touches
+# frontend/src directly — also triggers a Go rebuild: the built binary
+# embeds frontend/dist via go:embed at compile time, so it has to be
+# rebuilt for a frontend-only change to actually reach it.
+include_ext = ["go", "js", "html"]
+exclude_dir = [
+  "cmd/gui/tmp",
+  "cmd/gui/frontend/node_modules",
+  "cmd/gui/frontend/src",
+  "cmd/gui/frontend/public",
+  "cmd/gui/frontend/bindings",
+  "cmd/gui/build",
+  ".devenv",
+  "bin",
+]
+delay = 300
+# Default kill_delay (0s) sends the stop signal and immediately starts the
+# next build without waiting for the old process to actually release its
+# port — a real restart race that left an orphaned server holding the port
+# and made the next start fail with "address already in use". Give it time
+# to actually exit first.
+send_interrupt = true
+kill_delay = "500ms"
+
+[log]
+time = false

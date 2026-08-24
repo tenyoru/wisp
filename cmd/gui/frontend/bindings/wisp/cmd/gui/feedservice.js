@@ -71,7 +71,6 @@ export function ItemCount(feedID) {
 }
 
 /**
- * ItemMarkdown resolves itemID's article body to Markdown for preview.
  * @param {number} itemID
  * @returns {$CancellablePromise<string>}
  */

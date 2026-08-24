@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <title>wisp</title>
+</head>
+<body>
+<main class="container">
+    <h1 class="title">wisp</h1>
+    <p class="subtitle">RSS reader for podcasts and articles.</p>
+
+    <form id="add-feed-form" class="add-feed-row">
+        <input id="feed-url" type="text" placeholder="Feed URL or site URL" autocomplete="off" required/>
+        <button type="submit">Add</button>
+    </form>
+    <p id="status" class="status" hidden></p>
+    <ul id="feed-picker" class="discover-results" hidden></ul>
+
+    <details id="discover-panel" class="discover-panel">
+        <summary class="link-btn">Discover podcasts</summary>
+        <form id="discover-form" class="add-feed-row">
+            <input id="discover-query" type="text" placeholder="Search podcasts…" autocomplete="off" required/>
+            <button type="submit">Search</button>
+        </form>
+        <ul id="discover-results" class="discover-results"></ul>
+    </details>
+
+    <div class="feed-list-head">
+        <div id="feed-filter" class="feed-filter" role="group">
+            <button type="button" class="feed-filter-btn" data-filter="all">All</button>
+            <button type="button" class="feed-filter-btn" data-filter="article">Articles</button>
+            <button type="button" class="feed-filter-btn" data-filter="podcast">Podcasts</button>
+        </div>
+        <button id="refresh-all-btn" type="button" class="link-btn">Refresh all</button>
+    </div>
+    <ul id="feed-list" class="feed-list"></ul>
+</main>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

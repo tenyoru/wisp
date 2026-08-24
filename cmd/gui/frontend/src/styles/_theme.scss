@@ -1,0 +1,14 @@
+:root {
+    --bg: #121110;
+    --surface: #1b1a17;
+    --border: #333029;
+    --text: #f3f1ea;
+    --muted: #88857d;
+    --error: #ff6b6b;
+
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+        sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}

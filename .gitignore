@@ -1,0 +1,10 @@
+result
+result-*
+/gui
+/cli
+/bin
+.devenv
+.devenv*
+devenv.local.nix
+cmd/gui/tmp
+build-errors.log

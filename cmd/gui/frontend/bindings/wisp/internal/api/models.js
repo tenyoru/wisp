@@ -7,8 +7,7 @@
 import { Create as $Create } from "@wailsio/runtime";
 
 /**
- * DiscoveredFeed is one feed link found on a page by
- * internal/feed.DiscoverFeedURLs.
+ * DiscoveredFeed is one feed link found by internal/feed.DiscoverFeedURLs.
  */
 export class DiscoveredFeed {
     /**
@@ -84,10 +83,7 @@ export class Feed {
         }
         if (/** @type {any} */(false)) {
             /**
-             * Icon is the raw downloaded icon image (site favicon today; may be
-             * reused for podcast artwork etc. later), or nil if none was found.
-             * encoding/json marshals a []byte as a base64 string automatically, so
-             * the frontend can use it directly in a data: URI.
+             * []byte auto-marshals to base64
              * @member
              * @type {string | undefined}
              */
@@ -120,8 +116,7 @@ export class Feed {
 }
 
 /**
- * FeedKind is inferred from the feed's own content (any item with an
- * audio enclosure means Podcast), never trusted from caller input.
+ * FeedKind is inferred from content, not trusted from caller input.
  * @readonly
  * @enum {number}
  */
@@ -135,10 +130,6 @@ export const FeedKind = {
     FeedKindArticle: 1,
 };
 
-/**
- * Item is a single feed entry. ID and FeedID are zero until the item has
- * been persisted via internal/db.
- */
 export class Item {
     /**
      * Creates a new Item instance.

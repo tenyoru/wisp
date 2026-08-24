@@ -1,11 +1,11 @@
 .feed-list {
     list-style: none;
-    margin: 0.5rem 0 0;
+    margin: var(--space-8) 0 0;
     padding: 0;
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--space-8);
 }
 
 .feed-row {
@@ -17,8 +17,8 @@
 .feed-row-summary {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 10px 12px;
+    gap: var(--space-12);
+    padding: var(--space-10) var(--space-12);
     cursor: pointer;
     list-style: none;
     &::-webkit-details-marker { display: none; }
@@ -29,20 +29,20 @@
 .feed-row-items {
     list-style: none;
     margin: 0;
-    padding: 0 12px 10px 54px;
+    padding: 0 var(--space-12) var(--space-10) 54px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-8);
 }
 
 .item-row-status {
     color: var(--muted);
-    font-size: 12.5px;
+    font-size: var(--text-xs);
 }
 
 .item-row {
     border-top: 1px solid var(--border);
-    padding-top: 8px;
+    padding-top: var(--space-8);
 
     &:first-child { border-top: none; padding-top: 0; }
 }
@@ -55,18 +55,18 @@
 
 .item-row-title {
     font-weight: 600;
-    font-size: 13.5px;
+    font-size: var(--text-sm);
 }
 
 .item-row-meta {
     color: var(--muted);
-    font-size: 12px;
-    margin-top: 2px;
+    font-size: var(--text-xs);
+    margin-top: var(--space-2);
 }
 
 .item-row-desc {
-    margin: 4px 0 0;
-    font-size: 12.5px;
+    margin: var(--space-4) 0 0;
+    font-size: var(--text-xs);
     color: var(--muted);
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -75,8 +75,8 @@
 }
 
 .item-preview {
-    margin-top: 10px;
-    font-size: 13.5px;
+    margin-top: var(--space-10);
+    font-size: var(--text-sm);
     line-height: 1.55;
     -webkit-user-select: text;
     user-select: text;
@@ -92,17 +92,17 @@
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 6px;
-        padding: 10px;
+        padding: var(--space-10);
         overflow-x: auto;
         code.hljs { background: none; padding: 0; }
     }
     blockquote {
         border-left: 2px solid var(--border);
-        padding-left: 10px;
+        padding-left: var(--space-10);
         color: var(--muted);
     }
     table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; }
+    th, td { border: 1px solid var(--border); padding: var(--space-4) var(--space-8); text-align: left; }
 }
 
 .feed-row-icon {
@@ -121,7 +121,7 @@
     justify-content: center;
     color: #fff;
     font-weight: 700;
-    font-size: 14px;
+    font-size: var(--text-base);
 }
 
 .feed-row-main {
@@ -131,7 +131,7 @@
 
 .feed-row-title {
     font-weight: 600;
-    font-size: 14.5px;
+    font-size: var(--text-base);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -139,8 +139,8 @@
 
 .feed-row-meta {
     color: var(--muted);
-    font-size: 12.5px;
-    margin-top: 2px;
+    font-size: var(--text-xs);
+    margin-top: var(--space-2);
 }
 
 .feed-row-refresh,
@@ -149,10 +149,10 @@
     background: none;
     border: none;
     color: var(--muted);
-    font-size: 18px;
+    font-size: var(--text-lg);
     line-height: 1;
     cursor: pointer;
-    padding: 4px 6px;
+    padding: var(--space-4) var(--space-6);
 }
 
 .feed-row-delete:hover { color: var(--error); }

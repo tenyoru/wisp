@@ -62,11 +62,21 @@ func extractViaReadability(link string) (string, error) {
 func sanitizeAndConvert(htmlInput, baseURL string) (string, error) {
 	clean := sanitizePolicy.Sanitize(htmlInput)
 
+	domain := domainOf(baseURL)
 	var opts []converter.ConvertOptionFunc
-	if domain := domainOf(baseURL); domain != "" {
+	if domain != "" {
 		opts = append(opts, converter.WithDomain(domain))
 	}
-	return markdownConverter.ConvertString(clean, opts...)
+
+	md, err := markdownConverter.ConvertString(clean, opts...)
+	if err != nil || domain == "" {
+		return md, err
+	}
+	// html-to-markdown resolves a same-page "#fragment" href against domain
+	// (scheme://host, no path — WithDomain never sees the article's own
+	// path), turning in-page anchors into links to the site's root instead
+	// of leaving them alone.
+	return strings.ReplaceAll(md, "]("+domain+"#", "](#"), nil
 }
 
 func domainOf(rawURL string) string {

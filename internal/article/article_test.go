@@ -110,6 +110,23 @@ func TestResolveArticleMarkdown_ResolvesRelativeImageURL(t *testing.T) {
 	}
 }
 
+func TestResolveArticleMarkdown_KeepsFragmentLinksLocal(t *testing.T) {
+	md, err := ResolveArticleMarkdown(
+		"https://example.com/posts/hello",
+		`<p>see the <a href="#topic-title">topic title</a> section.</p>`,
+		"teaser",
+	)
+	if err != nil {
+		t.Fatalf("ResolveArticleMarkdown: %v", err)
+	}
+	if !strings.Contains(md, "(#topic-title)") {
+		t.Errorf("output %q rewrote an in-page anchor into an external link", md)
+	}
+	if strings.Contains(md, "example.com#topic-title") {
+		t.Errorf("output %q still links to the site's root instead of staying local", md)
+	}
+}
+
 func TestResolveArticleMarkdown_FallbackToTeaser(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)

@@ -61,7 +61,6 @@ export function DiscoverFeeds(siteURL) {
 }
 
 /**
- * GetFeed returns the zero Feed if feedID doesn't exist.
  * @param {number} feedID
  * @returns {$CancellablePromise<api$0.Feed>}
  */
@@ -144,7 +143,6 @@ export function SearchPodcasts(term) {
 }
 
 /**
- * UpdateFeed renames/repoints feedID, then queues a refresh so a URL change takes effect immediately.
  * @param {number} feedID
  * @param {string} title
  * @param {string} url

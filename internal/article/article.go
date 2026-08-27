@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	readability "codeberg.org/readeck/go-readability/v2"
@@ -69,15 +70,25 @@ func sanitizeAndConvert(htmlInput, baseURL string) (string, error) {
 	}
 
 	md, err := markdownConverter.ConvertString(clean, opts...)
-	if err != nil || domain == "" {
+	if err != nil {
 		return md, err
 	}
-	// html-to-markdown resolves a same-page "#fragment" href against domain
-	// (scheme://host, no path — WithDomain never sees the article's own
-	// path), turning in-page anchors into links to the site's root instead
-	// of leaving them alone.
-	return strings.ReplaceAll(md, "]("+domain+"#", "](#"), nil
+	if domain != "" {
+		// html-to-markdown resolves a same-page "#fragment" href against
+		// domain (scheme://host, no path — WithDomain never sees the
+		// article's own path), turning in-page anchors into links to the
+		// site's root instead of leaving them alone.
+		md = strings.ReplaceAll(md, "]("+domain+"#", "](#")
+	}
+	// A newline between a source <a> and the punctuation right after it
+	// collapses to a space per HTML's whitespace rules; html-to-markdown
+	// carries that space through, stranding the punctuation alone when the
+	// line wraps there.
+	md = trailingPunctAfterLink.ReplaceAllString(md, ")$1")
+	return md, nil
 }
+
+var trailingPunctAfterLink = regexp.MustCompile(`\)[ \t]+([.,;:!?)\]])`)
 
 func domainOf(rawURL string) string {
 	u, err := url.Parse(rawURL)

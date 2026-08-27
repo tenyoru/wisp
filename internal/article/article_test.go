@@ -127,6 +127,23 @@ func TestResolveArticleMarkdown_KeepsFragmentLinksLocal(t *testing.T) {
 	}
 }
 
+func TestResolveArticleMarkdown_StripsSpaceBeforeTrailingPunctuation(t *testing.T) {
+	md, err := ResolveArticleMarkdown(
+		"https://example.com/posts/hello",
+		"<p>see the original <a href=\"https://example.com/ru\">Russian version</a>\n.</p>",
+		"teaser",
+	)
+	if err != nil {
+		t.Fatalf("ResolveArticleMarkdown: %v", err)
+	}
+	if strings.Contains(md, ") .") {
+		t.Errorf("output %q still has a stray space before trailing punctuation", md)
+	}
+	if !strings.Contains(md, "(https://example.com/ru).") {
+		t.Errorf("output %q missing the expected link immediately followed by the period", md)
+	}
+}
+
 func TestResolveArticleMarkdown_FallbackToTeaser(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)

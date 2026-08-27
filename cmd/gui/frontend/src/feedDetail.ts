@@ -8,6 +8,8 @@ import { renderMarkdown } from "./markdown";
 import { deleteFeed, refreshFeed, loadFeeds } from "./feedList";
 import { createViewGroup } from "./views";
 
+const containerEl = requireEl<HTMLDivElement>("app-container");
+
 const feedViews = createViewGroup([
     requireEl<HTMLDivElement>("feed-list-panel"),
     requireEl<HTMLDivElement>("feed-detail-panel"),
@@ -116,6 +118,7 @@ export async function openPostDetail(item: Item): Promise<void> {
     postMetaEl.textContent = [kindLabel, formatPubDate(item.pubDate)].filter(Boolean).join(" · ");
     postTocEl.hidden = true;
     postTocEl.replaceChildren();
+    containerEl.classList.remove("is-wide");
 
     if (item.audioUrl) {
         postBodyEl.replaceChildren(
@@ -141,12 +144,23 @@ export async function openPostDetail(item: Item): Promise<void> {
     }
     const { html, toc } = renderMarkdown(md);
     postBodyEl.innerHTML = html;
-    if (toc.length > 0) {
+    if (toc.length > 1) {
         postTocEl.hidden = false;
+        containerEl.classList.add("is-wide");
         postTocEl.replaceChildren(
-            ...toc.map((h) => el("a", { href: `#${h.id}`, className: `post-toc-l${h.level}`, textContent: h.text })),
+            ...toc.map((h) => {
+                const link = el("a", { href: `#${h.id}`, className: `post-toc-l${h.level}`, textContent: h.text });
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    document.getElementById(h.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+                return link;
+            }),
         );
     }
 }
 
-postBackBtn.addEventListener("click", () => feedViews.show("detail"));
+postBackBtn.addEventListener("click", () => {
+    containerEl.classList.remove("is-wide");
+    feedViews.show("detail");
+});

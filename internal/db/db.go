@@ -13,6 +13,8 @@ type Store interface {
 
 	GetFeed(ctx context.Context, feedID int64) (*api.Feed, error)
 
+	UpdateFeed(ctx context.Context, feedID int64, title, url string) (api.Feed, error)
+
 	SetFeedIcon(ctx context.Context, feedID int64, data []byte, mimeType string) error
 
 	DeleteFeed(ctx context.Context, feedID int64) error

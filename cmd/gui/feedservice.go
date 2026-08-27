@@ -142,6 +142,26 @@ func (s *FeedService) DeleteFeed(ctx context.Context, feedID int64) error {
 	return s.store.DeleteFeed(ctx, feedID)
 }
 
+func (s *FeedService) GetFeed(ctx context.Context, feedID int64) (api.Feed, error) {
+	f, err := s.store.GetFeed(ctx, feedID)
+	if err != nil {
+		return api.Feed{}, err
+	}
+	if f == nil {
+		return api.Feed{}, fmt.Errorf("no such feed: %d", feedID)
+	}
+	return *f, nil
+}
+
+func (s *FeedService) UpdateFeed(ctx context.Context, feedID int64, title, url string) (api.Feed, error) {
+	updated, err := s.store.UpdateFeed(ctx, feedID, title, normalizeURL(url))
+	if err != nil {
+		return api.Feed{}, err
+	}
+	s.refreshInBackground(updated.ID, updated.URL)
+	return updated, nil
+}
+
 func (s *FeedService) ItemCount(ctx context.Context, feedID int64) (int, error) {
 	items, err := s.store.ListItems(ctx, &feedID)
 	if err != nil {

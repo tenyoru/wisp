@@ -7,53 +7,101 @@
 </head>
 <body>
 <nav class="sidebar" aria-label="Primary">
-    <button type="button" class="sidebar-item" aria-label="Timeline">
+    <button type="button" class="sidebar-item" aria-label="Timeline" data-view="timeline">
         <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 7.5H13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6.5 10.5H13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6.5 13.5H10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span>Timeline</span>
     </button>
-    <button type="button" class="sidebar-item is-active" aria-label="Feeds">
+    <button type="button" class="sidebar-item is-active" aria-label="Feeds" data-view="feeds">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="19" r="1.6" fill="currentColor"/><path d="M4 11a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 4a16 16 0 0 1 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <span>Feeds</span>
     </button>
-    <button type="button" class="sidebar-item" aria-label="Saved">
+    <button type="button" class="sidebar-item" aria-label="Saved" data-view="saved">
         <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M3.5 3.5C3.5 3 3.9 2.5 4.5 2.5H15.5C16.1 2.5 16.5 3 16.5 3.5V17L10 13.3L3.5 17V3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
         <span>Saved</span>
     </button>
-    <button type="button" class="sidebar-item" aria-label="Settings">
+    <button type="button" class="sidebar-item" aria-label="Settings" data-view="settings">
         <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="5.5" cy="6" r="1.7" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 6H3.8M7.2 6H17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="13.5" cy="10" r="1.7" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 10H11.8M15.2 10H17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="14" r="1.7" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 14H6.3M9.7 14H17.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         <span>Settings</span>
     </button>
 </nav>
 
 <main class="container">
-    <h1 class="title">wisp</h1>
-    <p class="subtitle">RSS reader for podcasts and articles.</p>
+    <section id="view-timeline" class="view" data-view="timeline" hidden>
+        <p class="empty-state">Timeline is coming soon.</p>
+    </section>
 
-    <form id="add-feed-form" class="add-feed-row">
-        <input id="feed-url" type="text" placeholder="Feed URL or site URL" autocomplete="off" required/>
-        <button type="submit">Add</button>
-    </form>
-    <p id="status" class="status" hidden></p>
-    <ul id="feed-picker" class="discover-results" hidden></ul>
+    <section id="view-feeds" class="view" data-view="feeds">
+        <div id="feed-list-panel" data-view="list">
+            <h1 class="title">wisp</h1>
+            <p class="subtitle">RSS reader for podcasts and articles.</p>
 
-    <details id="discover-panel" class="discover-panel">
-        <summary class="link-btn">Discover podcasts</summary>
-        <form id="discover-form" class="add-feed-row">
-            <input id="discover-query" type="text" placeholder="Search podcasts…" autocomplete="off" required/>
-            <button type="submit">Search</button>
-        </form>
-        <ul id="discover-results" class="discover-results"></ul>
-    </details>
+            <form id="add-feed-form" class="add-feed-row">
+                <input id="feed-url" type="text" placeholder="Feed URL or site URL" autocomplete="off" required/>
+                <button type="submit">Add</button>
+            </form>
+            <p id="status" class="status" hidden></p>
+            <ul id="feed-picker" class="discover-results" hidden></ul>
 
-    <div class="feed-list-head">
-        <div id="feed-filter" class="feed-filter" role="group">
-            <button type="button" class="feed-filter-btn" data-filter="all">All</button>
-            <button type="button" class="feed-filter-btn" data-filter="article">Articles</button>
-            <button type="button" class="feed-filter-btn" data-filter="podcast">Podcasts</button>
+            <details id="discover-panel" class="discover-panel">
+                <summary class="link-btn">Discover podcasts</summary>
+                <form id="discover-form" class="add-feed-row">
+                    <input id="discover-query" type="text" placeholder="Search podcasts…" autocomplete="off" required/>
+                    <button type="submit">Search</button>
+                </form>
+                <ul id="discover-results" class="discover-results"></ul>
+            </details>
+
+            <div class="feed-list-head">
+                <div id="feed-filter" class="feed-filter" role="group">
+                    <button type="button" class="feed-filter-btn" data-filter="all">All</button>
+                    <button type="button" class="feed-filter-btn" data-filter="article">Articles</button>
+                    <button type="button" class="feed-filter-btn" data-filter="podcast">Podcasts</button>
+                </div>
+                <button id="refresh-all-btn" type="button" class="link-btn">Refresh all</button>
+            </div>
+            <ul id="feed-list" class="feed-list"></ul>
         </div>
-        <button id="refresh-all-btn" type="button" class="link-btn">Refresh all</button>
-    </div>
-    <ul id="feed-list" class="feed-list"></ul>
+
+        <div id="feed-detail-panel" data-view="detail" hidden>
+            <button id="feed-detail-back" type="button" class="link-btn feed-detail-back">← Feeds</button>
+
+            <div class="feed-detail-head">
+                <div id="feed-detail-icon" class="feed-detail-icon"></div>
+                <h1 id="feed-detail-title" class="title"></h1>
+                <p id="feed-detail-meta" class="subtitle"></p>
+                <button id="feed-detail-refresh" type="button" class="link-btn">Refresh</button>
+            </div>
+
+            <details class="discover-panel">
+                <summary class="link-btn">Edit feed</summary>
+                <form id="feed-edit-form" class="feed-edit-form">
+                    <label>
+                        Title
+                        <input id="feed-edit-title" type="text" autocomplete="off"/>
+                    </label>
+                    <label>
+                        Feed URL
+                        <input id="feed-edit-url" type="text" autocomplete="off" required/>
+                    </label>
+                    <div class="feed-edit-actions">
+                        <button type="submit">Save</button>
+                        <button id="feed-detail-delete" type="button" class="feed-edit-delete">Delete feed</button>
+                    </div>
+                </form>
+                <p id="feed-edit-status" class="status" hidden></p>
+            </details>
+
+            <ul id="feed-detail-items" class="feed-list"></ul>
+        </div>
+    </section>
+
+    <section id="view-saved" class="view" data-view="saved" hidden>
+        <p class="empty-state">Saved is coming soon.</p>
+    </section>
+
+    <section id="view-settings" class="view" data-view="settings" hidden>
+        <p class="empty-state">Settings is coming soon.</p>
+    </section>
 </main>
 
 <script type="module" src="/src/main.ts"></script>

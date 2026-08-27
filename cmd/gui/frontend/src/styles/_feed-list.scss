@@ -20,19 +20,8 @@
     gap: var(--space-12);
     padding: var(--space-10) var(--space-12);
     cursor: pointer;
-    list-style: none;
-    &::-webkit-details-marker { display: none; }
 
     &:hover .feed-row-title { color: var(--muted); }
-}
-
-.feed-row-items {
-    list-style: none;
-    margin: 0;
-    padding: 0 var(--space-12) var(--space-10) 54px;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-8);
 }
 
 .item-row-status {

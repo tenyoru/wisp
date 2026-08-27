@@ -16,6 +16,9 @@ type Store interface {
 	// GetFeed returns nil, nil if feedID doesn't exist.
 	GetFeed(ctx context.Context, feedID int64) (*api.Feed, error)
 
+	// UpdateFeed sets feedID's display title (empty clears the override) and URL.
+	UpdateFeed(ctx context.Context, feedID int64, title, url string) (api.Feed, error)
+
 	// SetFeedIcon: nil data clears the icon.
 	SetFeedIcon(ctx context.Context, feedID int64, data []byte, mimeType string) error
 

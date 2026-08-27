@@ -12,12 +12,13 @@ import (
 
 const schema = `
 CREATE TABLE IF NOT EXISTS feeds (
-	id        INTEGER PRIMARY KEY AUTOINCREMENT,
-	url       TEXT NOT NULL UNIQUE,
-	title     TEXT NOT NULL,
-	kind      TEXT NOT NULL,
-	icon      BLOB,
-	icon_type TEXT NOT NULL DEFAULT ''
+	id             INTEGER PRIMARY KEY AUTOINCREMENT,
+	url            TEXT NOT NULL UNIQUE,
+	title          TEXT NOT NULL,
+	kind           TEXT NOT NULL,
+	icon           BLOB,
+	icon_type      TEXT NOT NULL DEFAULT '',
+	title_override TEXT
 );
 
 CREATE TABLE IF NOT EXISTS items (
@@ -67,6 +68,7 @@ func Open(path string) (*SQLiteStore, error) {
 		"ALTER TABLE feeds ADD COLUMN icon BLOB",
 		"ALTER TABLE feeds ADD COLUMN icon_type TEXT NOT NULL DEFAULT ''",
 		"UPDATE feeds SET icon = favicon, icon_type = favicon_type WHERE icon IS NULL AND favicon IS NOT NULL",
+		"ALTER TABLE feeds ADD COLUMN title_override TEXT",
 	} {
 		_, _ = dbConn.Exec(stmt)
 	}
@@ -92,16 +94,21 @@ func feedKindFromStr(s string) api.FeedKind {
 	return api.FeedKindArticle
 }
 
-const feedColumns = "id, url, title, kind, icon, icon_type"
+const feedColumns = "id, url, title, kind, icon, icon_type, title_override"
 
+// title_override, when set, survives UpsertFeed's title overwrite on refresh.
 func scanFeed(row interface{ Scan(...any) error }) (api.Feed, error) {
 	var f api.Feed
 	var kindStr string
-	err := row.Scan(&f.ID, &f.URL, &f.Title, &kindStr, &f.Icon, &f.IconMime)
+	var titleOverride sql.NullString
+	err := row.Scan(&f.ID, &f.URL, &f.Title, &kindStr, &f.Icon, &f.IconMime, &titleOverride)
 	if err != nil {
 		return api.Feed{}, err
 	}
 	f.Kind = feedKindFromStr(kindStr)
+	if titleOverride.Valid && titleOverride.String != "" {
+		f.Title = titleOverride.String
+	}
 	return f, nil
 }
 
@@ -156,6 +163,20 @@ func (s *SQLiteStore) SetFeedIcon(ctx context.Context, feedID int64, data []byte
 		return fmt.Errorf("set icon for feed %d: %w", feedID, err)
 	}
 	return nil
+}
+
+// UpdateFeed sets feedID's title override (empty clears it) and URL.
+func (s *SQLiteStore) UpdateFeed(ctx context.Context, feedID int64, title, url string) (api.Feed, error) {
+	row := s.db.QueryRowContext(ctx, `
+		UPDATE feeds SET title_override = NULLIF(?, ''), url = ? WHERE id = ?
+		RETURNING `+feedColumns,
+		title, url, feedID)
+
+	f, err := scanFeed(row)
+	if err != nil {
+		return api.Feed{}, fmt.Errorf("update feed %d: %w", feedID, err)
+	}
+	return f, nil
 }
 
 func (s *SQLiteStore) DeleteFeed(ctx context.Context, feedID int64) error {

@@ -173,6 +173,28 @@ func (s *FeedService) DeleteFeed(ctx context.Context, feedID int64) error {
 	return s.store.DeleteFeed(ctx, feedID)
 }
 
+// GetFeed returns the zero Feed if feedID doesn't exist.
+func (s *FeedService) GetFeed(ctx context.Context, feedID int64) (api.Feed, error) {
+	f, err := s.store.GetFeed(ctx, feedID)
+	if err != nil {
+		return api.Feed{}, err
+	}
+	if f == nil {
+		return api.Feed{}, fmt.Errorf("no such feed: %d", feedID)
+	}
+	return *f, nil
+}
+
+// UpdateFeed renames/repoints feedID, then queues a refresh so a URL change takes effect immediately.
+func (s *FeedService) UpdateFeed(ctx context.Context, feedID int64, title, url string) (api.Feed, error) {
+	updated, err := s.store.UpdateFeed(ctx, feedID, title, normalizeURL(url))
+	if err != nil {
+		return api.Feed{}, err
+	}
+	s.refreshInBackground(updated.ID, updated.URL)
+	return updated, nil
+}
+
 // ItemCount reports how many items are stored for feedID, so the UI can
 // show a count without fetching every item's full fields.
 func (s *FeedService) ItemCount(ctx context.Context, feedID int64) (int, error) {

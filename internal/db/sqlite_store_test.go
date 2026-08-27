@@ -224,6 +224,43 @@ func TestDeleteFeedCascadesItems(t *testing.T) {
 	}
 }
 
+func TestUpdateFeed(t *testing.T) {
+	ctx := context.Background()
+	store := openTestStore(t)
+
+	feed, err := store.UpsertFeed(ctx, "https://example.com/feed.xml", "Example", api.FeedKindArticle)
+	if err != nil {
+		t.Fatalf("UpsertFeed: %v", err)
+	}
+
+	renamed, err := store.UpdateFeed(ctx, feed.ID, "My Name", "https://example.com/new-feed.xml")
+	if err != nil {
+		t.Fatalf("UpdateFeed: %v", err)
+	}
+	if renamed.Title != "My Name" || renamed.URL != "https://example.com/new-feed.xml" {
+		t.Errorf("UpdateFeed = %+v, want title/URL to take", renamed)
+	}
+
+	// A refresh's UpsertFeed writes the feed's own title but must not
+	// clobber the override.
+	refreshed, err := store.UpsertFeed(ctx, renamed.URL, "Feed-Supplied Title", api.FeedKindArticle)
+	if err != nil {
+		t.Fatalf("UpsertFeed (refresh): %v", err)
+	}
+	if refreshed.Title != "My Name" {
+		t.Errorf("Title after refresh = %q, want override %q to survive", refreshed.Title, "My Name")
+	}
+
+	// Clearing the override reverts to the feed-supplied title.
+	cleared, err := store.UpdateFeed(ctx, feed.ID, "", renamed.URL)
+	if err != nil {
+		t.Fatalf("UpdateFeed (clear): %v", err)
+	}
+	if cleared.Title != "Feed-Supplied Title" {
+		t.Errorf("Title after clearing override = %q, want feed-supplied %q", cleared.Title, "Feed-Supplied Title")
+	}
+}
+
 func TestOpenIsReopenable(t *testing.T) {
 	ctx := context.Background()
 	path := filepath.Join(t.TempDir(), "wisp.db")

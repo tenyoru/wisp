@@ -61,6 +61,17 @@ export function DiscoverFeeds(siteURL) {
 }
 
 /**
+ * GetFeed returns the zero Feed if feedID doesn't exist.
+ * @param {number} feedID
+ * @returns {$CancellablePromise<api$0.Feed>}
+ */
+export function GetFeed(feedID) {
+    return $Call.ByID(710938923, feedID).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * ItemCount reports how many items are stored for feedID, so the UI can
  * show a count without fetching every item's full fields.
  * @param {number} feedID
@@ -129,6 +140,19 @@ export function RefreshFeed(feedID) {
 export function SearchPodcasts(term) {
     return $Call.ByID(529381604, term).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType7($result);
+    }));
+}
+
+/**
+ * UpdateFeed renames/repoints feedID, then queues a refresh so a URL change takes effect immediately.
+ * @param {number} feedID
+ * @param {string} title
+ * @param {string} url
+ * @returns {$CancellablePromise<api$0.Feed>}
+ */
+export function UpdateFeed(feedID, title, url) {
+    return $Call.ByID(3440431000, feedID, title, url).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
     }));
 }
 

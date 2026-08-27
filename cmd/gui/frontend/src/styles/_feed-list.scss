@@ -38,8 +38,6 @@
 
 .item-row-summary {
     cursor: pointer;
-    list-style: none;
-    &::-webkit-details-marker { display: none; }
 }
 
 .item-row-title {
@@ -67,6 +65,7 @@
     margin-top: var(--space-10);
     font-size: var(--text-sm);
     line-height: 1.55;
+    text-align: left;
     -webkit-user-select: text;
     user-select: text;
 

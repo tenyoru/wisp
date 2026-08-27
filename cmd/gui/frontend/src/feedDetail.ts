@@ -1,15 +1,17 @@
 import { Events } from "@wailsio/runtime";
 import { FeedService } from "../bindings/wisp/cmd/gui";
-import { FeedKind, type Feed } from "../bindings/wisp/internal/api";
-import { requireEl } from "./dom";
+import { FeedKind, type Feed, type Item } from "../bindings/wisp/internal/api";
+import { el, requireEl } from "./dom";
 import { renderFeedIcon } from "./avatar";
-import { loadItems } from "./items";
+import { loadItems, formatPubDate } from "./items";
+import { renderMarkdown } from "./markdown";
 import { deleteFeed, refreshFeed, loadFeeds } from "./feedList";
 import { createViewGroup } from "./views";
 
 const feedViews = createViewGroup([
     requireEl<HTMLDivElement>("feed-list-panel"),
     requireEl<HTMLDivElement>("feed-detail-panel"),
+    requireEl<HTMLDivElement>("post-detail-panel"),
 ]);
 const backBtn = requireEl<HTMLButtonElement>("feed-detail-back");
 const iconSlot = requireEl<HTMLDivElement>("feed-detail-icon");
@@ -22,6 +24,11 @@ const editTitleInput = requireEl<HTMLInputElement>("feed-edit-title");
 const editUrlInput = requireEl<HTMLInputElement>("feed-edit-url");
 const editStatusEl = requireEl<HTMLParagraphElement>("feed-edit-status");
 const itemsEl = requireEl<HTMLUListElement>("feed-detail-items");
+
+const postBackBtn = requireEl<HTMLButtonElement>("post-detail-back");
+const postTitleEl = requireEl<HTMLHeadingElement>("post-detail-title");
+const postMetaEl = requireEl<HTMLParagraphElement>("post-detail-meta");
+const postBodyEl = requireEl<HTMLDivElement>("post-detail-body");
 
 let currentFeedId: number | null = null;
 
@@ -98,3 +105,42 @@ Events.On("feed-refreshed", async (evt) => {
     if (result.feed) renderFeed(result.feed);
     await loadItems(itemsEl, currentFeedId);
 });
+
+// Rapid open/close can start a second load before the first resolves;
+// requestId drops a stale response so it can't clobber a fresher one.
+let postRequestId = 0;
+
+export async function openPostDetail(item: Item): Promise<void> {
+    feedViews.show("post");
+    const requestId = ++postRequestId;
+
+    postTitleEl.textContent = item.title || item.link;
+    const kindLabel = item.audioUrl ? "Podcast" : "Article";
+    postMetaEl.textContent = [kindLabel, formatPubDate(item.pubDate)].filter(Boolean).join(" · ");
+
+    if (item.audioUrl) {
+        postBodyEl.replaceChildren(
+            el("p", { className: "item-row-status", textContent: "Podcast playback isn't implemented yet." }),
+        );
+        return;
+    }
+
+    postBodyEl.replaceChildren(el("p", { className: "item-row-status", textContent: "Loading…" }));
+    let md: string;
+    try {
+        md = await FeedService.ItemMarkdown(item.id);
+    } catch (err) {
+        if (requestId === postRequestId) {
+            postBodyEl.replaceChildren(el("p", { className: "item-row-status", textContent: `Failed to load article: ${err}` }));
+        }
+        return;
+    }
+    if (requestId !== postRequestId) return;
+    if (!md.trim()) {
+        postBodyEl.replaceChildren(el("p", { className: "item-row-status", textContent: "No content available." }));
+        return;
+    }
+    postBodyEl.innerHTML = renderMarkdown(md);
+}
+
+postBackBtn.addEventListener("click", () => feedViews.show("detail"));

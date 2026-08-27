@@ -65,6 +65,31 @@ func TestResolveArticleMarkdown_ReadabilityExtraction(t *testing.T) {
 	}
 }
 
+func TestResolveArticleMarkdown_ResolvesRelativeImageAfterRedirect(t *testing.T) {
+	pageWithImage := strings.Replace(articlePage,
+		"<h1>A Real Article</h1>",
+		`<h1>A Real Article</h1><img src="diagram.png" alt="a diagram">`, 1)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/posts/hello", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/posts/hello/", http.StatusFound)
+	})
+	mux.HandleFunc("/posts/hello/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(pageWithImage))
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+
+	md, err := ResolveArticleMarkdown(srv.URL+"/posts/hello", "", "fallback teaser")
+	if err != nil {
+		t.Fatalf("ResolveArticleMarkdown: %v", err)
+	}
+	want := srv.URL + "/posts/hello/diagram.png"
+	if !strings.Contains(md, want) {
+		t.Errorf("output %q missing relative image resolved against the post-redirect URL %q", md, want)
+	}
+}
+
 func TestResolveArticleMarkdown_Table(t *testing.T) {
 	md, err := ResolveArticleMarkdown(
 		"https://example.com/article",

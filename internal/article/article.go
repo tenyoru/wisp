@@ -3,6 +3,7 @@ package article
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -46,17 +47,33 @@ func ResolveArticleMarkdown(link, contentEncoded, description string) (string, e
 }
 
 func extractViaReadability(link string) (string, error) {
-	article, err := readability.FromURL(link, httpx.DefaultTimeout, func(r *http.Request) {
-		r.Header.Set("User-Agent", httpx.UserAgent)
-	})
+	req, err := http.NewRequest(http.MethodGet, link, nil)
 	if err != nil {
 		return "", err
 	}
+	req.Header.Set("User-Agent", httpx.UserAgent)
+
+	client := &http.Client{Timeout: httpx.DefaultTimeout}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("fetch %s: unexpected status %s", link, resp.Status)
+	}
+
+	parser := readability.NewParser()
+	article, err := parser.Parse(resp.Body, resp.Request.URL)
+	if err != nil {
+		return "", err
+	}
+
 	var buf bytes.Buffer
 	if err := article.RenderHTML(&buf); err != nil {
 		return "", err
 	}
-	return sanitizeAndConvert(buf.String(), link)
+	return sanitizeAndConvert(buf.String(), resp.Request.URL.String())
 }
 
 // sanitizeAndConvert resolves relative URLs in htmlInput against baseURL.

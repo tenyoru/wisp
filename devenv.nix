@@ -17,6 +17,7 @@
     gcc
     gtk4
     webkitgtk_6_0
+    glib-networking
     ffmpeg
     whisper-cpp
     alsa-lib
@@ -27,6 +28,7 @@
   # PATH so `wails3` is callable directly inside the shell.
   enterShell = ''
     export PATH="$(go env GOPATH)/bin:$PATH"
+    export GIO_EXTRA_MODULES="${pkgs.glib-networking}/lib/gio/modules:$GIO_EXTRA_MODULES"
   '';
 
   processes = {

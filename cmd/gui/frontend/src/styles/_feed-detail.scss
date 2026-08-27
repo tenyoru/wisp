@@ -28,22 +28,59 @@
     font-weight: 700;
     line-height: 1.3;
     letter-spacing: -0.01em;
-    text-align: left;
 }
 
 .post-detail-meta {
     margin: 0 0 var(--space-16);
     color: var(--muted);
     font-size: var(--text-xs);
-    text-align: left;
 }
+
+// Widen the shared app-shell container only while a post with a TOC is
+// showing — every other view keeps the normal narrow, centered layout.
+.container:has(#post-detail-panel[data-view="post"]:not([hidden])) {
+    max-width: 860px;
+}
+
+.post-detail-layout {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-32);
+
+    #post-detail-body {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+.post-toc {
+    flex: 0 0 200px;
+    position: sticky;
+    top: var(--space-24);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding-left: var(--space-16);
+    border-left: 1px solid var(--border);
+    font-size: var(--text-xs);
+
+    a {
+        color: var(--muted);
+        text-decoration: none;
+        overflow-wrap: break-word;
+
+        &:hover { color: var(--text); }
+    }
+}
+
+.post-toc-l3 { padding-left: var(--space-12); }
+.post-toc-l4, .post-toc-l5, .post-toc-l6 { padding-left: var(--space-24); }
 
 .feed-edit-form {
     display: flex;
     flex-direction: column;
     gap: var(--space-12);
     margin-top: var(--space-12);
-    text-align: left;
 
     label {
         display: flex;

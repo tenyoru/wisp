@@ -29,6 +29,7 @@ const postBackBtn = requireEl<HTMLButtonElement>("post-detail-back");
 const postTitleEl = requireEl<HTMLHeadingElement>("post-detail-title");
 const postMetaEl = requireEl<HTMLParagraphElement>("post-detail-meta");
 const postBodyEl = requireEl<HTMLDivElement>("post-detail-body");
+const postTocEl = requireEl<HTMLElement>("post-detail-toc");
 
 let currentFeedId: number | null = null;
 
@@ -117,6 +118,8 @@ export async function openPostDetail(item: Item): Promise<void> {
     postTitleEl.textContent = item.title || item.link;
     const kindLabel = item.audioUrl ? "Podcast" : "Article";
     postMetaEl.textContent = [kindLabel, formatPubDate(item.pubDate)].filter(Boolean).join(" · ");
+    postTocEl.hidden = true;
+    postTocEl.replaceChildren();
 
     if (item.audioUrl) {
         postBodyEl.replaceChildren(
@@ -140,7 +143,14 @@ export async function openPostDetail(item: Item): Promise<void> {
         postBodyEl.replaceChildren(el("p", { className: "item-row-status", textContent: "No content available." }));
         return;
     }
-    postBodyEl.innerHTML = renderMarkdown(md);
+    const { html, toc } = renderMarkdown(md);
+    postBodyEl.innerHTML = html;
+    if (toc.length > 0) {
+        postTocEl.hidden = false;
+        postTocEl.replaceChildren(
+            ...toc.map((h) => el("a", { href: `#${h.id}`, className: `post-toc-l${h.level}`, textContent: h.text })),
+        );
+    }
 }
 
 postBackBtn.addEventListener("click", () => feedViews.show("detail"));

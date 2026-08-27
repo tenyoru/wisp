@@ -4,7 +4,7 @@ import { FeedKind, type Feed } from "../bindings/wisp/internal/api";
 import { el, requireEl } from "./dom";
 import { setStatus } from "./status";
 import { renderFeedIcon } from "./avatar";
-import { loadItems } from "./items";
+import { openFeedDetail } from "./feedDetail";
 
 // Ids with a refresh in flight — RefreshFeed only queues it; completion
 // arrives later via "feed-refreshed".
@@ -17,17 +17,15 @@ const feedFilterButtons = [...feedFilterEl.querySelectorAll<HTMLButtonElement>("
 
 interface RowEntry {
     li: HTMLLIElement;
-    details: HTMLDetailsElement;
     iconEl: HTMLElement;
     titleEl: HTMLDivElement;
     metaEl: HTMLDivElement;
     refreshBtn: HTMLButtonElement;
-    itemsEl: HTMLUListElement;
     // Mirrors feed.kind so the filter can check it without re-fetching.
     kind: FeedKind;
     // Change-detection key for iconEl, swapped via replaceWith when it
     // changes. No wrapper span: WebKitGTK doesn't box a `display: contents`
-    // child of <summary>, which silently hid every icon.
+    // child of the row, which silently hid every icon.
     lastIconKey: string;
 }
 
@@ -50,7 +48,7 @@ function buildFeedRow(feed: Feed): RowEntry {
         textContent: "↻",
         title: "Refresh feed",
     });
-    // Buttons sit inside <summary>; without this a click also toggles <details>.
+    // Buttons sit inside the row; without this a click also opens the feed detail page.
     refreshBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         refreshFeed(feed.id);
@@ -67,28 +65,27 @@ function buildFeedRow(feed: Feed): RowEntry {
         deleteFeed(feed.id);
     });
 
-    const summary = el("summary", { className: "feed-row-summary" }, [
-        iconEl,
-        el("div", { className: "feed-row-main" }, [titleEl, metaEl]),
-        refreshBtn,
-        deleteBtn,
-    ]);
-    const itemsEl = el("ul", { className: "feed-row-items" });
-    const details = el("details", { className: "feed-row" }, [summary, itemsEl]);
-    details.addEventListener("toggle", () => {
-        if (details.open) loadItems(itemsEl, feed.id);
+    const summary = el(
+        "div",
+        { className: "feed-row-summary", tabIndex: 0, role: "button" },
+        [iconEl, el("div", { className: "feed-row-main" }, [titleEl, metaEl]), refreshBtn, deleteBtn],
+    );
+    summary.addEventListener("click", () => openFeedDetail(feed.id));
+    summary.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openFeedDetail(feed.id);
+        }
     });
 
-    const li = el("li", {}, [details]);
+    const li = el("li", { className: "feed-row" }, [summary]);
 
     const entry: RowEntry = {
         li,
-        details,
         iconEl,
         titleEl,
         metaEl,
         refreshBtn,
-        itemsEl,
         kind: feed.kind,
         lastIconKey: iconKeyFor(feed),
     };
@@ -233,7 +230,7 @@ async function loadFeedsOnce(): Promise<void> {
     applyFeedFilter();
 }
 
-async function deleteFeed(id: number): Promise<void> {
+export async function deleteFeed(id: number): Promise<void> {
     try {
         await FeedService.DeleteFeed(id);
     } catch (err) {
@@ -243,7 +240,7 @@ async function deleteFeed(id: number): Promise<void> {
     await loadFeeds();
 }
 
-async function refreshFeed(id: number): Promise<void> {
+export async function refreshFeed(id: number): Promise<void> {
     refreshingIds.add(id);
     await loadFeeds();
     try {

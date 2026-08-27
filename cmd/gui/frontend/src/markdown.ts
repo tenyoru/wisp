@@ -12,11 +12,17 @@ function escapeHtml(s: string): string {
 }
 
 const SAFE_PROTOCOL = /^(?:https?:|mailto:)/i;
+const SAFE_IMG_PROTOCOL = /^(?:https?:|data:image\/)/i;
 const HAS_PROTOCOL = /^[a-z][a-z0-9+.-]*:/i;
 
 function safeHref(href: string): string | null {
     if (href.startsWith("#")) return null;
     return HAS_PROTOCOL.test(href) && !SAFE_PROTOCOL.test(href) ? null : href;
+}
+
+function safeImgSrc(src: string): string | null {
+    if (src.startsWith("#")) return null;
+    return HAS_PROTOCOL.test(src) && !SAFE_IMG_PROTOCOL.test(src) ? null : src;
 }
 
 export interface TocHeading {
@@ -49,7 +55,7 @@ marked.use({
             return `<a href="${escapeHtml(safe)}"${titleAttr}>${text}</a>`;
         },
         image({ href, title, text }) {
-            const safe = safeHref(href);
+            const safe = safeImgSrc(href);
             if (!safe) return escapeHtml(text);
             const titleAttr = title ? ` title="${escapeHtml(title)}"` : "";
             return `<img src="${escapeHtml(safe)}" alt="${escapeHtml(text)}"${titleAttr}>`;

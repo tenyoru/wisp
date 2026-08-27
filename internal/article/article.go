@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	readability "codeberg.org/readeck/go-readability/v2"
@@ -65,11 +66,17 @@ func sanitizeAndConvert(htmlInput, baseURL string) (string, error) {
 	}
 
 	md, err := markdownConverter.ConvertString(clean, opts...)
-	if err != nil || domain == "" {
+	if err != nil {
 		return md, err
 	}
-	return strings.ReplaceAll(md, "]("+domain+"#", "](#"), nil
+	if domain != "" {
+		md = strings.ReplaceAll(md, "]("+domain+"#", "](#")
+	}
+	md = trailingPunctAfterLink.ReplaceAllString(md, ")$1")
+	return md, nil
 }
+
+var trailingPunctAfterLink = regexp.MustCompile(`\)[ \t]+([.,;:!?)\]])`)
 
 func domainOf(rawURL string) string {
 	u, err := url.Parse(rawURL)

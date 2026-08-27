@@ -173,7 +173,6 @@ func (s *FeedService) DeleteFeed(ctx context.Context, feedID int64) error {
 	return s.store.DeleteFeed(ctx, feedID)
 }
 
-// GetFeed returns the zero Feed if feedID doesn't exist.
 func (s *FeedService) GetFeed(ctx context.Context, feedID int64) (api.Feed, error) {
 	f, err := s.store.GetFeed(ctx, feedID)
 	if err != nil {
@@ -185,7 +184,6 @@ func (s *FeedService) GetFeed(ctx context.Context, feedID int64) (api.Feed, erro
 	return *f, nil
 }
 
-// UpdateFeed renames/repoints feedID, then queues a refresh so a URL change takes effect immediately.
 func (s *FeedService) UpdateFeed(ctx context.Context, feedID int64, title, url string) (api.Feed, error) {
 	updated, err := s.store.UpdateFeed(ctx, feedID, title, normalizeURL(url))
 	if err != nil {

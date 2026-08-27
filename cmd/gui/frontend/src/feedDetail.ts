@@ -98,8 +98,6 @@ editForm.addEventListener("submit", async (e) => {
     }
 });
 
-// Keeps the open detail page (header + item list) in sync with a refresh
-// that was kicked off from here or from the feed list row.
 Events.On("feed-refreshed", async (evt) => {
     const result = evt.data;
     if (currentFeedId === null || result.feedId !== currentFeedId || result.error) return;
@@ -107,8 +105,6 @@ Events.On("feed-refreshed", async (evt) => {
     await loadItems(itemsEl, currentFeedId);
 });
 
-// Rapid open/close can start a second load before the first resolves;
-// requestId drops a stale response so it can't clobber a fresher one.
 let postRequestId = 0;
 
 export async function openPostDetail(item: Item): Promise<void> {

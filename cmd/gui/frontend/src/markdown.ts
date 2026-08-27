@@ -11,13 +11,10 @@ function escapeHtml(s: string): string {
         .replace(/"/g, "&quot;");
 }
 
-// Feed content is untrusted; only allow schemes that can't run script or read local files.
 const SAFE_PROTOCOL = /^(?:https?:|mailto:)/i;
 const HAS_PROTOCOL = /^[a-z][a-z0-9+.-]*:/i;
 
 function safeHref(href: string): string | null {
-    // "#fragment" hrefs come from the source site's own heading ids, which
-    // never match ours — dead weight, not just unsafe, so drop them too.
     if (href.startsWith("#")) return null;
     return HAS_PROTOCOL.test(href) && !SAFE_PROTOCOL.test(href) ? null : href;
 }

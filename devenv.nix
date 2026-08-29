@@ -22,13 +22,26 @@
     whisper-cpp
     alsa-lib
     air
-  ];
+  ] ++ (with gst_all_1; [
+    gstreamer
+    gst-plugins-base
+    gst-plugins-good
+    gst-plugins-bad
+    gst-plugins-ugly
+  ]);
 
   # `go install .../wails3@latest` puts the CLI in $GOPATH/bin — put it on
   # PATH so `wails3` is callable directly inside the shell.
   enterShell = ''
     export PATH="$(go env GOPATH)/bin:$PATH"
     export GIO_EXTRA_MODULES="${pkgs.glib-networking}/lib/gio/modules:$GIO_EXTRA_MODULES"
+    export GST_PLUGIN_SYSTEM_PATH_1_0="${pkgs.lib.makeSearchPath "lib/gstreamer-1.0" (with pkgs.gst_all_1; [
+      gstreamer.out
+      gst-plugins-base.out
+      gst-plugins-good.out
+      gst-plugins-bad.out
+      gst-plugins-ugly.out
+    ])}"
   '';
 
   processes = {

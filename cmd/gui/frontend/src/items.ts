@@ -9,6 +9,10 @@ export function formatPubDate(pubDate: string): string {
     return Number.isNaN(d.getTime()) ? pubDate : d.toLocaleDateString();
 }
 
+function stripHtml(html: string): string {
+    return new DOMParser().parseFromString(html, "text/html").body.textContent ?? "";
+}
+
 function buildItemRow(item: Item): HTMLLIElement {
     const kindLabel = item.audioUrl ? "Podcast" : "Article";
     const metaParts = [kindLabel, formatPubDate(item.pubDate)].filter(Boolean);
@@ -19,7 +23,7 @@ function buildItemRow(item: Item): HTMLLIElement {
         [
             el("div", { className: "item-row-title", textContent: item.title || item.link }),
             el("div", { className: "item-row-meta", textContent: metaParts.join(" · ") }),
-            el("p", { className: "item-row-desc", textContent: item.description }),
+            el("p", { className: "item-row-desc", textContent: stripHtml(item.description) }),
         ],
     );
     summary.addEventListener("click", () => openPostDetail(item));

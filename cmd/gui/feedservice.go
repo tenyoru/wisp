@@ -237,6 +237,9 @@ func (s *FeedService) ItemMarkdown(ctx context.Context, itemID int64) (string, e
 	if item == nil {
 		return "", fmt.Errorf("no such item: %d", itemID)
 	}
+	if item.AudioURL != "" {
+		return article.ResolveShowNotes(item.Link, item.ContentEncoded, item.Description)
+	}
 	return article.ResolveArticleMarkdown(item.Link, item.ContentEncoded, item.Description)
 }
 

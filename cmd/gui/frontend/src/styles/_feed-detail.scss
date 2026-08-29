@@ -95,6 +95,13 @@
 
 .podcast-download-error { color: var(--error); }
 
+.podcast-shownotes-label {
+    font-size: var(--text-xs);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
 .post-toc-l3 { padding-left: var(--space-12); }
 .post-toc-l4, .post-toc-l5, .post-toc-l6 { padding-left: var(--space-24); }
 

@@ -167,6 +167,43 @@ function renderPodcastPlayer(item: Item): HTMLElement {
     return el("div", { className: "podcast-player" }, [audioEl, currentDownloadStatusEl]);
 }
 
+// Silent on failure/empty — many podcasts have nothing beyond the description already shown.
+async function loadShowNotes(item: Item, requestId: number): Promise<void> {
+    const notesEl = el("div", { className: "podcast-shownotes" });
+    postBodyEl.append(el("h2", { className: "podcast-shownotes-label", textContent: "Show notes" }), notesEl);
+
+    let md: string;
+    try {
+        md = await FeedService.ItemMarkdown(item.id);
+    } catch {
+        return removeShowNotes();
+    }
+    if (requestId !== postRequestId) return;
+    if (!md.trim()) return removeShowNotes();
+
+    const { html, toc } = renderMarkdown(md);
+    notesEl.innerHTML = html;
+    if (toc.length > 1) {
+        postTocEl.hidden = false;
+        containerEl.classList.add("is-wide");
+        postTocEl.replaceChildren(
+            ...toc.map((h) => {
+                const link = el("a", { href: `#${h.id}`, className: `post-toc-l${h.level}`, textContent: h.text });
+                link.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    document.getElementById(h.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                });
+                return link;
+            }),
+        );
+    }
+
+    function removeShowNotes(): void {
+        notesEl.previousElementSibling?.remove();
+        notesEl.remove();
+    }
+}
+
 Events.On("episode-download", (evt) => {
     const result = evt.data;
     if (!currentPostItem || result.itemId !== currentPostItem.id || !currentDownloadStatusEl) return;
@@ -203,6 +240,7 @@ export async function openPostDetail(item: Item): Promise<void> {
 
     if (item.audioUrl) {
         postBodyEl.replaceChildren(renderPodcastPlayer(item));
+        await loadShowNotes(item, requestId);
         return;
     }
 

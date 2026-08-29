@@ -46,6 +46,16 @@ func ResolveArticleMarkdown(link, contentEncoded, description string) (string, e
 	return sanitizeAndConvert(description, link)
 }
 
+// ResolveShowNotes is ResolveArticleMarkdown without the Readability
+// fallback: a podcast episode's link is often a generic show page rather
+// than that specific episode, so scraping it returns the wrong content.
+func ResolveShowNotes(link, contentEncoded, description string) (string, error) {
+	if strings.TrimSpace(contentEncoded) != "" {
+		return sanitizeAndConvert(contentEncoded, link)
+	}
+	return sanitizeAndConvert(description, link)
+}
+
 func extractViaReadability(link string) (string, error) {
 	req, err := http.NewRequest(http.MethodGet, link, nil)
 	if err != nil {

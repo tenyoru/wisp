@@ -12,7 +12,7 @@ var (
 )
 
 func Resolve() error {
-	db, err := xdg.DataFile("wisp-go/wisp.db")
+	db, err := xdg.DataFile("wisp/wisp.db")
 	if err != nil {
 		return err
 	}

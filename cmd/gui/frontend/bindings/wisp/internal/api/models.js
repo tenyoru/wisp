@@ -204,6 +204,22 @@ export class Item {
              */
             this["downloadFilename"] = undefined;
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * podcast:transcript, empty if the feed doesn't publish one
+             * @member
+             * @type {string | undefined}
+             */
+            this["transcriptUrl"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * its MIME type, e.g. text/vtt, application/srt
+             * @member
+             * @type {string | undefined}
+             */
+            this["transcriptType"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }

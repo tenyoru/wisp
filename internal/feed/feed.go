@@ -30,6 +30,7 @@ func FetchAndParse(ctx context.Context, feedURL string) (api.ParsedFeed, error) 
 	items := make([]api.Item, 0, len(parsed.Items))
 	hasAudio := false
 	for _, entry := range parsed.Items {
+		transcriptURL, transcriptType := podcastTranscript(entry)
 		item := api.Item{
 			Title:          entry.Title,
 			Link:           entry.Link,
@@ -37,6 +38,8 @@ func FetchAndParse(ctx context.Context, feedURL string) (api.ParsedFeed, error) 
 			Description:    entry.Description,
 			ContentEncoded: entry.Content,
 			AudioURL:       audioEnclosure(entry),
+			TranscriptURL:  transcriptURL,
+			TranscriptType: transcriptType,
 		}
 		if item.AudioURL != "" {
 			hasAudio = true
@@ -71,4 +74,12 @@ func audioEnclosure(entry *gofeed.Item) string {
 		}
 	}
 	return ""
+}
+
+func podcastTranscript(entry *gofeed.Item) (url, mimeType string) {
+	matches := entry.Extensions["podcast"]["transcript"]
+	if len(matches) == 0 {
+		return "", ""
+	}
+	return matches[0].Attrs["url"], matches[0].Attrs["type"]
 }

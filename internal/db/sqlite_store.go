@@ -82,6 +82,11 @@ func Open(path string) (*SQLiteStore, error) {
 		return nil, fmt.Errorf("migrate items guid: %w", err)
 	}
 
+	if _, err := dbConn.Exec("CREATE INDEX IF NOT EXISTS idx_items_feed_link ON items(feed_id, link)"); err != nil {
+		dbConn.Close()
+		return nil, fmt.Errorf("create items link index: %w", err)
+	}
+
 	return &SQLiteStore{db: dbConn}, nil
 }
 
@@ -259,6 +264,13 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	}
 	defer tx.Rollback()
 
+	reconcile, err := tx.PrepareContext(ctx, `
+		UPDATE items SET guid = ? WHERE feed_id = ? AND link = ? AND link != '' AND guid != ?`)
+	if err != nil {
+		return fmt.Errorf("upsert items: %w", err)
+	}
+	defer reconcile.Close()
+
 	stmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO items (feed_id, guid, title, link, pub_date, audio_url, description, content_encoded, transcript_url, transcript_type)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -277,6 +289,9 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	defer stmt.Close()
 
 	for _, item := range items {
+		if _, err := reconcile.ExecContext(ctx, item.GUID, feedID, item.Link, item.GUID); err != nil {
+			return fmt.Errorf("reconcile item %q: %w", item.GUID, err)
+		}
 		if _, err := stmt.ExecContext(ctx, feedID, item.GUID, item.Title, item.Link, item.PubDate,
 			item.AudioURL, item.Description, item.ContentEncoded,
 			item.TranscriptURL, item.TranscriptType); err != nil {

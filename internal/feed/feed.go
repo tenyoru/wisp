@@ -86,13 +86,26 @@ func audioEnclosure(entry *gofeed.Item) string {
 	return ""
 }
 
+// parseableTranscriptTypes ranks formats internal/podcast.FetchTranscript
+// can actually parse; feeds don't reliably list their preferred format
+// first (Buzzsprout lists text/html before text/vtt), so document order
+// alone isn't a usable signal.
+var parseableTranscriptTypes = []string{"vtt", "srt", "subrip", "plain"}
+
 // podcastTranscript reads the Podcasting 2.0 <podcast:transcript> tag, if
-// present; a feed listing several formats is expected to list its
-// preferred one first.
+// present, preferring a format that's actually parseable over whichever
+// the feed lists first.
 func podcastTranscript(entry *gofeed.Item) (url, mimeType string) {
 	matches := entry.Extensions["podcast"]["transcript"]
 	if len(matches) == 0 {
 		return "", ""
+	}
+	for _, want := range parseableTranscriptTypes {
+		for _, m := range matches {
+			if strings.Contains(m.Attrs["type"], want) {
+				return m.Attrs["url"], m.Attrs["type"]
+			}
+		}
 	}
 	return matches[0].Attrs["url"], matches[0].Attrs["type"]
 }

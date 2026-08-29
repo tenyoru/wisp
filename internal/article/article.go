@@ -43,6 +43,13 @@ func ResolveArticleMarkdown(link, contentEncoded, description string) (string, e
 	return sanitizeAndConvert(description, link)
 }
 
+func ResolveShowNotes(link, contentEncoded, description string) (string, error) {
+	if strings.TrimSpace(contentEncoded) != "" {
+		return sanitizeAndConvert(contentEncoded, link)
+	}
+	return sanitizeAndConvert(description, link)
+}
+
 func extractViaReadability(link string) (string, error) {
 	req, err := http.NewRequest(http.MethodGet, link, nil)
 	if err != nil {

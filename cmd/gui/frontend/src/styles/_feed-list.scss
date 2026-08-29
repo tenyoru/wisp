@@ -72,7 +72,8 @@
     p, ul, ol, blockquote, pre, table { margin: 0.75em 0; }
     h1, h2, h3, h4 { margin: 1em 0 0.4em; line-height: 1.3; }
     a { color: var(--text); }
-    img { max-width: 100%; border-radius: 6px; }
+    // forces dark-mode-aware SVGs back to their light (as-authored) colors
+    img { max-width: 100%; border-radius: 6px; color-scheme: light; }
     code { background: var(--surface); border-radius: 4px; padding: 1px 4px; font-size: 0.9em; }
     pre {
         background: var(--surface);

@@ -150,6 +150,14 @@ export class Item {
              */
             this["feedId"] = 0;
         }
+        if (!("guid" in $$source)) {
+            /**
+             * stable per-item identity; item.Link is often absent or shared across items
+             * @member
+             * @type {string}
+             */
+            this["guid"] = "";
+        }
         if (!("title" in $$source)) {
             /**
              * @member

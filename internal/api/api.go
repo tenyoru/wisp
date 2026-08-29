@@ -22,6 +22,7 @@ type Feed struct {
 type Item struct {
 	ID               int64  `json:"id"`
 	FeedID           int64  `json:"feedId"`
+	GUID             string `json:"guid"` // stable per-item identity; item.Link is often absent or shared across items
 	Title            string `json:"title"`
 	Link             string `json:"link"`
 	PubDate          string `json:"pubDate"`                    // RFC3339, best-effort from the feed

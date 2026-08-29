@@ -132,17 +132,17 @@ func TestUpsertItemsAndList(t *testing.T) {
 	}
 
 	items := []api.Item{
-		{Title: "First", Link: "https://example.com/1", PubDate: "2026-01-01T00:00:00Z", Description: "one"},
-		{Title: "Second", Link: "https://example.com/2", PubDate: "2026-01-02T00:00:00Z", Description: "two"},
+		{GUID: "guid-1", Title: "First", Link: "https://example.com/1", PubDate: "2026-01-01T00:00:00Z", Description: "one"},
+		{GUID: "guid-2", Title: "Second", Link: "https://example.com/2", PubDate: "2026-01-02T00:00:00Z", Description: "two"},
 	}
 	if err := store.UpsertItems(ctx, feed.ID, items); err != nil {
 		t.Fatalf("UpsertItems: %v", err)
 	}
 
-	// Refetching the same feed updates existing items by link rather than
+	// Refetching the same feed updates existing items by guid rather than
 	// duplicating them.
 	updated := []api.Item{
-		{Title: "First (edited)", Link: "https://example.com/1", PubDate: "2026-01-01T00:00:00Z", Description: "one edited"},
+		{GUID: "guid-1", Title: "First (edited)", Link: "https://example.com/1", PubDate: "2026-01-01T00:00:00Z", Description: "one edited"},
 	}
 	if err := store.UpsertItems(ctx, feed.ID, updated); err != nil {
 		t.Fatalf("UpsertItems (update): %v", err)

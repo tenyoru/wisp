@@ -36,7 +36,12 @@ func FetchAndParse(ctx context.Context, feedURL string) (api.ParsedFeed, error) 
 	hasAudio := false
 	for _, entry := range parsed.Items {
 		transcriptURL, transcriptType := podcastTranscript(entry)
+		guid := entry.GUID
+		if guid == "" {
+			guid = entry.Link
+		}
 		item := api.Item{
+			GUID:           guid,
 			Title:          entry.Title,
 			Link:           entry.Link,
 			PubDate:        pubDate(entry),

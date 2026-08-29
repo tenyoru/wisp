@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS feeds (
 CREATE TABLE IF NOT EXISTS items (
 	id              INTEGER PRIMARY KEY AUTOINCREMENT,
 	feed_id         INTEGER NOT NULL REFERENCES feeds(id) ON DELETE CASCADE,
+	guid            TEXT NOT NULL,
 	title           TEXT NOT NULL,
 	link            TEXT NOT NULL,
 	pub_date        TEXT NOT NULL DEFAULT '',
@@ -33,7 +34,7 @@ CREATE TABLE IF NOT EXISTS items (
 	download_filename TEXT NOT NULL DEFAULT '',
 	transcript_url  TEXT NOT NULL DEFAULT '',
 	transcript_type TEXT NOT NULL DEFAULT '',
-	UNIQUE(feed_id, link)
+	UNIQUE(feed_id, guid)
 );
 `
 
@@ -79,7 +80,79 @@ func Open(path string) (*SQLiteStore, error) {
 		_, _ = dbConn.Exec(stmt)
 	}
 
+	if err := migrateItemsGUID(dbConn); err != nil {
+		dbConn.Close()
+		return nil, fmt.Errorf("migrate items guid: %w", err)
+	}
+
 	return &SQLiteStore{db: dbConn}, nil
+}
+
+// migrateItemsGUID switches items' identity key from (feed_id, link) to
+// (feed_id, guid): many feeds (e.g. Buzzsprout) omit <link> per item, which
+// collapsed every one of their items into a single row under the old
+// constraint. SQLite can't alter a table's UNIQUE constraint in place, so
+// this recreates the table; existing rows backfill guid from their old
+// link, which is safe — it was already unique under the constraint being
+// replaced.
+func migrateItemsGUID(db *sql.DB) error {
+	rows, err := db.Query("PRAGMA table_info(items)")
+	if err != nil {
+		return err
+	}
+	hasGUID := false
+	for rows.Next() {
+		var cid, notnull, pk int
+		var name, ctype string
+		var dflt sql.NullString
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk); err != nil {
+			rows.Close()
+			return err
+		}
+		if name == "guid" {
+			hasGUID = true
+		}
+	}
+	rows.Close()
+	if hasGUID {
+		return nil
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	for _, stmt := range []string{
+		`ALTER TABLE items RENAME TO items_old`,
+		`CREATE TABLE items (
+			id              INTEGER PRIMARY KEY AUTOINCREMENT,
+			feed_id         INTEGER NOT NULL REFERENCES feeds(id) ON DELETE CASCADE,
+			guid            TEXT NOT NULL,
+			title           TEXT NOT NULL,
+			link            TEXT NOT NULL,
+			pub_date        TEXT NOT NULL DEFAULT '',
+			audio_url       TEXT NOT NULL DEFAULT '',
+			description     TEXT NOT NULL DEFAULT '',
+			content_encoded TEXT NOT NULL DEFAULT '',
+			download_filename TEXT NOT NULL DEFAULT '',
+			transcript_url  TEXT NOT NULL DEFAULT '',
+			transcript_type TEXT NOT NULL DEFAULT '',
+			UNIQUE(feed_id, guid)
+		)`,
+		`INSERT INTO items (id, feed_id, guid, title, link, pub_date, audio_url, description,
+				content_encoded, download_filename, transcript_url, transcript_type)
+			SELECT id, feed_id, link, title, link, pub_date, audio_url, description,
+				content_encoded, download_filename, transcript_url, transcript_type
+			FROM items_old`,
+		`DROP TABLE items_old`,
+	} {
+		if _, err := tx.Exec(stmt); err != nil {
+			return fmt.Errorf("%s: %w", stmt, err)
+		}
+	}
+	return tx.Commit()
 }
 
 func (s *SQLiteStore) Close() error {
@@ -200,10 +273,11 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	defer tx.Rollback()
 
 	stmt, err := tx.PrepareContext(ctx, `
-		INSERT INTO items (feed_id, title, link, pub_date, audio_url, description, content_encoded, transcript_url, transcript_type)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(feed_id, link) DO UPDATE SET
+		INSERT INTO items (feed_id, guid, title, link, pub_date, audio_url, description, content_encoded, transcript_url, transcript_type)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(feed_id, guid) DO UPDATE SET
 			title = excluded.title,
+			link = excluded.link,
 			pub_date = excluded.pub_date,
 			audio_url = excluded.audio_url,
 			description = excluded.description,
@@ -216,21 +290,21 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	defer stmt.Close()
 
 	for _, item := range items {
-		if _, err := stmt.ExecContext(ctx, feedID, item.Title, item.Link, item.PubDate,
+		if _, err := stmt.ExecContext(ctx, feedID, item.GUID, item.Title, item.Link, item.PubDate,
 			item.AudioURL, item.Description, item.ContentEncoded,
 			item.TranscriptURL, item.TranscriptType); err != nil {
-			return fmt.Errorf("upsert item %q: %w", item.Link, err)
+			return fmt.Errorf("upsert item %q: %w", item.GUID, err)
 		}
 	}
 
 	return tx.Commit()
 }
 
-const itemColumns = "id, feed_id, title, link, pub_date, audio_url, description, content_encoded, download_filename, transcript_url, transcript_type"
+const itemColumns = "id, feed_id, guid, title, link, pub_date, audio_url, description, content_encoded, download_filename, transcript_url, transcript_type"
 
 func scanItem(row interface{ Scan(...any) error }) (api.Item, error) {
 	var it api.Item
-	err := row.Scan(&it.ID, &it.FeedID, &it.Title, &it.Link, &it.PubDate,
+	err := row.Scan(&it.ID, &it.FeedID, &it.GUID, &it.Title, &it.Link, &it.PubDate,
 		&it.AudioURL, &it.Description, &it.ContentEncoded, &it.DownloadFilename,
 		&it.TranscriptURL, &it.TranscriptType)
 	return it, err

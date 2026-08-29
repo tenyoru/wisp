@@ -3,24 +3,29 @@ package main
 import (
 	"embed"
 	"log"
+	"net/http"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"wisp/internal/db"
+	"wisp/internal/paths"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
-	path, err := db.DefaultPath()
-	if err != nil {
-		log.Fatalf("wisp: resolve db path: %v", err)
+	if err := paths.Resolve(); err != nil {
+		log.Fatalf("wisp: resolve app paths: %v", err)
 	}
-	store, err := db.Open(path)
+	store, err := db.Open(paths.DB)
 	if err != nil {
-		log.Fatalf("wisp: open db at %s: %v", path, err)
+		log.Fatalf("wisp: open db at %s: %v", paths.DB, err)
 	}
+
+	assetMux := http.NewServeMux()
+	assetMux.Handle("/episodes/", http.StripPrefix("/episodes/", http.FileServer(http.Dir(paths.EpisodesDir()))))
+	assetMux.Handle("/", application.AssetFileServerFS(assets))
 
 	// application.Get() isn't valid until application.New() below returns,
 	// so emit is a closure that resolves it lazily — by the time anything
@@ -39,7 +44,7 @@ func main() {
 			application.NewService(feedSvc),
 		},
 		Assets: application.AssetOptions{
-			Handler: application.AssetFileServerFS(assets),
+			Handler: assetMux,
 		},
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,

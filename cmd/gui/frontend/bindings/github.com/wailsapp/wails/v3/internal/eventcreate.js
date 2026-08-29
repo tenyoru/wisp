@@ -12,11 +12,13 @@ import * as main$0 from "../../../../../wisp/cmd/gui/models.js";
 
 function configure() {
     Object.freeze(Object.assign($Create.Events, {
-        "feed-refreshed": $$createType0,
+        "episode-download": $$createType0,
+        "feed-refreshed": $$createType1,
     }));
 }
 
 // Private type creation functions
-const $$createType0 = main$0.FeedRefreshResult.createFrom;
+const $$createType0 = main$0.EpisodeDownloadEvent.createFrom;
+const $$createType1 = main$0.FeedRefreshResult.createFrom;
 
 configure();

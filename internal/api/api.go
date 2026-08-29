@@ -20,14 +20,15 @@ type Feed struct {
 }
 
 type Item struct {
-	ID             int64  `json:"id"`
-	FeedID         int64  `json:"feedId"`
-	Title          string `json:"title"`
-	Link           string `json:"link"`
-	PubDate        string `json:"pubDate"`        // RFC3339, best-effort from the feed
-	AudioURL       string `json:"audioUrl"`       // empty => article, not a podcast episode
-	Description    string `json:"description"`    // short teaser, always feed-supplied
-	ContentEncoded string `json:"contentEncoded"` // full body if the feed included one; empty otherwise
+	ID               int64  `json:"id"`
+	FeedID           int64  `json:"feedId"`
+	Title            string `json:"title"`
+	Link             string `json:"link"`
+	PubDate          string `json:"pubDate"`                    // RFC3339, best-effort from the feed
+	AudioURL         string `json:"audioUrl"`                   // empty => article, not a podcast episode
+	Description      string `json:"description"`                // short teaser, always feed-supplied
+	ContentEncoded   string `json:"contentEncoded"`             // full body if the feed included one; empty otherwise
+	DownloadFilename string `json:"downloadFilename,omitempty"` // empty => not downloaded
 }
 
 type ParsedFeed struct {

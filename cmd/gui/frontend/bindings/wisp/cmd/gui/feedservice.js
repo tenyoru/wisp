@@ -41,6 +41,14 @@ export function AddFeedFromSearch(feedURL, artworkURL) {
 }
 
 /**
+ * @param {number} itemID
+ * @returns {$CancellablePromise<void>}
+ */
+export function DeleteDownload(itemID) {
+    return $Call.ByID(1863193026, itemID);
+}
+
+/**
  * @param {number} feedID
  * @returns {$CancellablePromise<void>}
  */
@@ -58,6 +66,15 @@ export function DiscoverFeeds(siteURL) {
     return $Call.ByID(638028247, siteURL).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType2($result);
     }));
+}
+
+/**
+ * DownloadEpisode returns immediately; the result arrives via "episode-download".
+ * @param {number} itemID
+ * @returns {$CancellablePromise<void>}
+ */
+export function DownloadEpisode(itemID) {
+    return $Call.ByID(223036006, itemID);
 }
 
 /**

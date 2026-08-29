@@ -7,6 +7,7 @@ import { loadItems, formatPubDate } from "./items";
 import { renderMarkdown } from "./markdown";
 import { deleteFeed, refreshFeed, loadFeeds } from "./feedList";
 import { createViewGroup } from "./views";
+import { setStatus } from "./status";
 
 const containerEl = requireEl<HTMLDivElement>("app-container");
 
@@ -108,6 +109,82 @@ Events.On("feed-refreshed", async (evt) => {
 });
 
 let postRequestId = 0;
+let currentPostItemId: number | null = null;
+let currentPostItem: Item | null = null;
+let currentDownloadStatusEl: HTMLElement | null = null;
+let currentAudioEl: HTMLAudioElement | null = null;
+
+function audioSrc(item: Item): string {
+    if (!item.downloadFilename) return item.audioUrl;
+    const encodedPath = item.downloadFilename.split("/").map(encodeURIComponent).join("/");
+    return `/episodes/${encodedPath}`;
+}
+
+function formatBytes(n: number): string {
+    return n >= 1024 * 1024 ? `${(n / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(n / 1024)} KB`;
+}
+
+function renderDownloadStatus(item: Item): void {
+    if (!currentDownloadStatusEl) return;
+    const statusEl = currentDownloadStatusEl;
+
+    if (item.downloadFilename) {
+        const deleteBtn = el("button", { type: "button", className: "link-btn", textContent: "Delete download" });
+        deleteBtn.addEventListener("click", async () => {
+            try {
+                await FeedService.DeleteDownload(item.id);
+            } catch (err) {
+                setStatus(`Couldn't delete download: ${err}`, true);
+                return;
+            }
+            item.downloadFilename = "";
+            if (currentAudioEl) currentAudioEl.src = audioSrc(item);
+            renderDownloadStatus(item);
+        });
+        statusEl.replaceChildren(el("span", { textContent: "Downloaded" }), deleteBtn);
+        return;
+    }
+
+    const downloadBtn = el("button", { type: "button", className: "link-btn", textContent: "Download" });
+    downloadBtn.addEventListener("click", async () => {
+        statusEl.replaceChildren(el("span", { textContent: "Downloading…" }));
+        try {
+            await FeedService.DownloadEpisode(item.id);
+        } catch (err) {
+            setStatus(`Couldn't start download: ${err}`, true);
+            renderDownloadStatus(item);
+        }
+    });
+    statusEl.replaceChildren(downloadBtn);
+}
+
+function renderPodcastPlayer(item: Item): HTMLElement {
+    currentPostItem = item;
+    const audioEl = el("audio", { className: "podcast-audio", controls: true, src: audioSrc(item) });
+    currentAudioEl = audioEl;
+    currentDownloadStatusEl = el("div", { className: "podcast-download" });
+    renderDownloadStatus(item);
+    return el("div", { className: "podcast-player" }, [audioEl, currentDownloadStatusEl]);
+}
+
+Events.On("episode-download", (evt) => {
+    const result = evt.data;
+    if (!currentPostItem || result.itemId !== currentPostItem.id || !currentDownloadStatusEl) return;
+
+    if (result.error) {
+        setStatus(`Download failed: ${result.error}`, true);
+        currentDownloadStatusEl.replaceChildren(el("span", { className: "podcast-download-error", textContent: "Download failed." }));
+        return;
+    }
+    if (result.done) {
+        currentPostItem.downloadFilename = result.downloadFilename;
+        if (currentAudioEl) currentAudioEl.src = audioSrc(currentPostItem);
+        renderDownloadStatus(currentPostItem);
+        return;
+    }
+    const pct = result.total > 0 ? `${Math.round((result.downloaded / result.total) * 100)}%` : formatBytes(result.downloaded);
+    currentDownloadStatusEl.replaceChildren(el("span", { textContent: `Downloading… ${pct}` }));
+});
 
 export async function openPostDetail(item: Item): Promise<void> {
     feedViews.show("post");
@@ -120,10 +197,12 @@ export async function openPostDetail(item: Item): Promise<void> {
     postTocEl.replaceChildren();
     containerEl.classList.remove("is-wide");
 
+    currentPostItem = null;
+    currentAudioEl = null;
+    currentDownloadStatusEl = null;
+
     if (item.audioUrl) {
-        postBodyEl.replaceChildren(
-            el("p", { className: "item-row-status", textContent: "Podcast playback isn't implemented yet." }),
-        );
+        postBodyEl.replaceChildren(renderPodcastPlayer(item));
         return;
     }
 

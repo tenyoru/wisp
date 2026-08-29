@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS items (
 	audio_url       TEXT NOT NULL DEFAULT '',
 	description     TEXT NOT NULL DEFAULT '',
 	content_encoded TEXT NOT NULL DEFAULT '',
+	download_filename TEXT NOT NULL DEFAULT '',
 	UNIQUE(feed_id, link)
 );
 `
@@ -69,6 +70,7 @@ func Open(path string) (*SQLiteStore, error) {
 		"ALTER TABLE feeds ADD COLUMN icon_type TEXT NOT NULL DEFAULT ''",
 		"UPDATE feeds SET icon = favicon, icon_type = favicon_type WHERE icon IS NULL AND favicon IS NOT NULL",
 		"ALTER TABLE feeds ADD COLUMN title_override TEXT",
+		"ALTER TABLE items ADD COLUMN download_filename TEXT NOT NULL DEFAULT ''",
 	} {
 		_, _ = dbConn.Exec(stmt)
 	}
@@ -217,12 +219,12 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	return tx.Commit()
 }
 
-const itemColumns = "id, feed_id, title, link, pub_date, audio_url, description, content_encoded"
+const itemColumns = "id, feed_id, title, link, pub_date, audio_url, description, content_encoded, download_filename"
 
 func scanItem(row interface{ Scan(...any) error }) (api.Item, error) {
 	var it api.Item
 	err := row.Scan(&it.ID, &it.FeedID, &it.Title, &it.Link, &it.PubDate,
-		&it.AudioURL, &it.Description, &it.ContentEncoded)
+		&it.AudioURL, &it.Description, &it.ContentEncoded, &it.DownloadFilename)
 	return it, err
 }
 
@@ -262,4 +264,12 @@ func (s *SQLiteStore) GetItem(ctx context.Context, itemID int64) (*api.Item, err
 		return nil, fmt.Errorf("get item %d: %w", itemID, err)
 	}
 	return &item, nil
+}
+
+func (s *SQLiteStore) SetItemDownload(ctx context.Context, itemID int64, filename string) error {
+	if _, err := s.db.ExecContext(ctx, `UPDATE items SET download_filename = ? WHERE id = ?`,
+		filename, itemID); err != nil {
+		return fmt.Errorf("set download for item %d: %w", itemID, err)
+	}
+	return nil
 }

@@ -32,5 +32,8 @@ type Store interface {
 
 	GetItem(ctx context.Context, itemID int64) (*api.Item, error)
 
+	// SetItemDownload records itemID's downloaded audio filename; empty clears it.
+	SetItemDownload(ctx context.Context, itemID int64, filename string) error
+
 	Close() error
 }

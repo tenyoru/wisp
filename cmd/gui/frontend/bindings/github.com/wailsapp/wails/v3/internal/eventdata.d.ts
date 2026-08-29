@@ -12,6 +12,7 @@ import type * as main$0 from "../../../../../wisp/cmd/gui/models.js";
 declare module "@wailsio/runtime" {
     namespace Events {
         interface CustomEvents {
+            "episode-download": main$0.EpisodeDownloadEvent;
             "feed-refreshed": main$0.FeedRefreshResult;
         }
     }

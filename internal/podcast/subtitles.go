@@ -72,10 +72,7 @@ func timeLink(seconds float64) string {
 	return fmt.Sprintf("[%s](#t=%d)", formatTimestamp(seconds), int(seconds))
 }
 
-// cueLink wraps a single cue's own text in its own #t= link — finer-grained
-// than the one visible timestamp per paragraph, so a future now-playing
-// highlight can walk these to find which cue is current, and a click seeks
-// straight to that cue instead of just its paragraph.
+// wraps one cue in its own #t= link, finer-grained than the paragraph badge
 func cueLink(c cue) string {
 	return "[" + escapeLinkText(c.text) + "](#t=" + strconv.Itoa(int(c.start)) + ")"
 }

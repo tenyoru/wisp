@@ -102,12 +102,15 @@
     letter-spacing: 0.04em;
 }
 
-// Each paragraph's first link is its visible [MM:SS] badge; every other
-// #t= link wraps one cue for future now-playing highlight/seek and stays
-// visually inline with the text around it.
 .podcast-shownotes.is-transcript p {
     position: relative;
     padding-left: 3.25em;
+
+    // draggable="false" alone doesn't stop WebKitGTK's own link-drag
+    a[href^="#t="] {
+        -webkit-user-drag: none;
+        user-drag: none;
+    }
 
     > a:first-child {
         position: absolute;
@@ -125,6 +128,7 @@
         text-decoration: none;
         cursor: pointer;
 
+        &:hover { background: var(--surface); }
         &.is-current { background: var(--surface); }
     }
 }

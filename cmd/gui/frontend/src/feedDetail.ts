@@ -167,18 +167,19 @@ function renderPodcastPlayer(item: Item): HTMLElement {
     return el("div", { className: "podcast-player" }, [audioEl, currentDownloadStatusEl]);
 }
 
-// Transcript paragraphs are prefixed with a [MM:SS](#t=seconds) link
-// (see internal/podcast/subtitles.go) — clicking one seeks the player
-// instead of navigating.
+// #t=seconds links (internal/podcast/subtitles.go) seek instead of navigating.
 function seekOnTimeLinkClick(e: MouseEvent): void {
     const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#t="]');
     if (!link || !currentAudioEl) return;
     e.preventDefault();
+    // A drag-to-select release over a link still fires click.
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) return;
     currentAudioEl.currentTime = Number(link.hash.slice("#t=".length));
 }
 
 function isParseableTranscript(item: Item): boolean {
-    const type = item.transcriptType;
+    const type = item.transcriptType ?? "";
     return type.includes("vtt") || type.includes("srt") || type.includes("subrip");
 }
 

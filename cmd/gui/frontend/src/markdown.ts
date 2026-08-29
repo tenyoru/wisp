@@ -52,7 +52,11 @@ marked.use({
             const safe = safeHref(href);
             if (!safe) return text;
             const titleAttr = title ? ` title="${escapeHtml(title)}"` : "";
-            return `<a href="${escapeHtml(safe)}"${titleAttr}>${text}</a>`;
+            // #t= links tile the whole transcript; without draggable="false"
+            // a click-drag to select text grabs the link instead (native
+            // <a> drag-source behavior, before any JS ever sees the event).
+            const draggableAttr = safe.startsWith("#t=") ? ` draggable="false"` : "";
+            return `<a href="${escapeHtml(safe)}"${titleAttr}${draggableAttr}>${text}</a>`;
         },
         image({ href, title, text }) {
             const safe = safeImgSrc(href);

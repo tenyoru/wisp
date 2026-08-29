@@ -81,10 +81,19 @@ func audioEnclosure(entry *gofeed.Item) string {
 	return ""
 }
 
+var parseableTranscriptTypes = []string{"vtt", "srt", "subrip", "plain"}
+
 func podcastTranscript(entry *gofeed.Item) (url, mimeType string) {
 	matches := entry.Extensions["podcast"]["transcript"]
 	if len(matches) == 0 {
 		return "", ""
+	}
+	for _, want := range parseableTranscriptTypes {
+		for _, m := range matches {
+			if strings.Contains(m.Attrs["type"], want) {
+				return m.Attrs["url"], m.Attrs["type"]
+			}
+		}
 	}
 	return matches[0].Attrs["url"], matches[0].Attrs["type"]
 }

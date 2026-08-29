@@ -29,6 +29,8 @@ type Item struct {
 	Description      string `json:"description"`                // short teaser, always feed-supplied
 	ContentEncoded   string `json:"contentEncoded"`             // full body if the feed included one; empty otherwise
 	DownloadFilename string `json:"downloadFilename,omitempty"` // empty => not downloaded
+	TranscriptURL    string `json:"transcriptUrl,omitempty"`    // podcast:transcript, empty if the feed doesn't publish one
+	TranscriptType   string `json:"transcriptType,omitempty"`   // its MIME type, e.g. text/vtt, application/srt
 }
 
 type ParsedFeed struct {

@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS items (
 	description     TEXT NOT NULL DEFAULT '',
 	content_encoded TEXT NOT NULL DEFAULT '',
 	download_filename TEXT NOT NULL DEFAULT '',
+	transcript_url  TEXT NOT NULL DEFAULT '',
+	transcript_type TEXT NOT NULL DEFAULT '',
 	UNIQUE(feed_id, link)
 );
 `
@@ -71,6 +73,8 @@ func Open(path string) (*SQLiteStore, error) {
 		"UPDATE feeds SET icon = favicon, icon_type = favicon_type WHERE icon IS NULL AND favicon IS NOT NULL",
 		"ALTER TABLE feeds ADD COLUMN title_override TEXT",
 		"ALTER TABLE items ADD COLUMN download_filename TEXT NOT NULL DEFAULT ''",
+		"ALTER TABLE items ADD COLUMN transcript_url TEXT NOT NULL DEFAULT ''",
+		"ALTER TABLE items ADD COLUMN transcript_type TEXT NOT NULL DEFAULT ''",
 	} {
 		_, _ = dbConn.Exec(stmt)
 	}
@@ -196,14 +200,16 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	defer tx.Rollback()
 
 	stmt, err := tx.PrepareContext(ctx, `
-		INSERT INTO items (feed_id, title, link, pub_date, audio_url, description, content_encoded)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO items (feed_id, title, link, pub_date, audio_url, description, content_encoded, transcript_url, transcript_type)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(feed_id, link) DO UPDATE SET
 			title = excluded.title,
 			pub_date = excluded.pub_date,
 			audio_url = excluded.audio_url,
 			description = excluded.description,
-			content_encoded = excluded.content_encoded`)
+			content_encoded = excluded.content_encoded,
+			transcript_url = excluded.transcript_url,
+			transcript_type = excluded.transcript_type`)
 	if err != nil {
 		return fmt.Errorf("upsert items: %w", err)
 	}
@@ -211,7 +217,8 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 
 	for _, item := range items {
 		if _, err := stmt.ExecContext(ctx, feedID, item.Title, item.Link, item.PubDate,
-			item.AudioURL, item.Description, item.ContentEncoded); err != nil {
+			item.AudioURL, item.Description, item.ContentEncoded,
+			item.TranscriptURL, item.TranscriptType); err != nil {
 			return fmt.Errorf("upsert item %q: %w", item.Link, err)
 		}
 	}
@@ -219,12 +226,13 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	return tx.Commit()
 }
 
-const itemColumns = "id, feed_id, title, link, pub_date, audio_url, description, content_encoded, download_filename"
+const itemColumns = "id, feed_id, title, link, pub_date, audio_url, description, content_encoded, download_filename, transcript_url, transcript_type"
 
 func scanItem(row interface{ Scan(...any) error }) (api.Item, error) {
 	var it api.Item
 	err := row.Scan(&it.ID, &it.FeedID, &it.Title, &it.Link, &it.PubDate,
-		&it.AudioURL, &it.Description, &it.ContentEncoded, &it.DownloadFilename)
+		&it.AudioURL, &it.Description, &it.ContentEncoded, &it.DownloadFilename,
+		&it.TranscriptURL, &it.TranscriptType)
 	return it, err
 }
 

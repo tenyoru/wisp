@@ -81,6 +81,7 @@ opened. Scoping only below, nothing implemented.
 - [ ] Typography scale — font-sizes are ad-hoc per component right now (12px/12.5px/13.5px/14px/14.5px/15px/18px scattered across `styles/*.scss`), no defined scale
 - [ ] Spacing scale — margins/paddings/gaps are hand-picked per component, same problem
 - [ ] Keyboard nav / focus-visible states — only `:hover` is styled anywhere; no focus ring, no full keyboard-only flow
+- [ ] Keybindings for common actions (refresh, add feed, navigate items, play/pause podcast, etc.) — none exist yet, everything is mouse/tap-only
 - [ ] Consistent loading/empty/error visual language — every feature invented its own inline text pattern as it was built (`.item-row-status`, `.status`, `.empty-state`, ad-hoc `textContent` in a few places)
 - [ ] Dedicated article reading view — currently an inline expand under the item row; no reading-width constraint, font-size control, or "close/back" affordance
 - [ ] Settings/preferences UI — doesn't exist; blocks on `api.Settings` (not yet defined either)

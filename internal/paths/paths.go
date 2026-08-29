@@ -15,9 +15,7 @@ var (
 
 // Call once at startup, before anything reads DB/Episodes.
 func Resolve() error {
-	// "wisp-go", not "wisp" — the old rust-tauri branch used an
-	// incompatible schema at that path.
-	db, err := xdg.DataFile("wisp-go/wisp.db")
+	db, err := xdg.DataFile("wisp/wisp.db")
 	if err != nil {
 		return err
 	}

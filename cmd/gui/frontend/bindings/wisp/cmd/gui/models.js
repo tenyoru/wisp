@@ -10,6 +10,69 @@ import { Create as $Create } from "@wailsio/runtime";
 // @ts-ignore: Unused imports
 import * as api$0 from "../../internal/api/models.js";
 
+export class EpisodeDownloadEvent {
+    /**
+     * Creates a new EpisodeDownloadEvent instance.
+     * @param {Partial<EpisodeDownloadEvent>} [$$source = {}] - The source object to create the EpisodeDownloadEvent.
+     */
+    constructor($$source = {}) {
+        if (!("itemId" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["itemId"] = 0;
+        }
+        if (!("downloaded" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["downloaded"] = 0;
+        }
+        if (!("total" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["total"] = 0;
+        }
+        if (!("done" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["done"] = false;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["downloadFilename"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["error"] = undefined;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new EpisodeDownloadEvent instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {EpisodeDownloadEvent}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new EpisodeDownloadEvent(/** @type {Partial<EpisodeDownloadEvent>} */($$parsedSource));
+    }
+}
+
 /**
  * FeedRefreshResult is the payload of the "feed-refreshed" event.
  */

@@ -196,6 +196,14 @@ export class Item {
              */
             this["contentEncoded"] = "";
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * empty => not downloaded
+             * @member
+             * @type {string | undefined}
+             */
+            this["downloadFilename"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }

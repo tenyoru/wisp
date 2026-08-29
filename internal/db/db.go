@@ -25,5 +25,7 @@ type Store interface {
 
 	GetItem(ctx context.Context, itemID int64) (*api.Item, error)
 
+	SetItemDownload(ctx context.Context, itemID int64, filename string) error
+
 	Close() error
 }

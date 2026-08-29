@@ -18,16 +18,30 @@ import (
 
 const eventFeedRefreshed = "feed-refreshed"
 
+const eventEpisodeDownload = "episode-download"
+
 func init() {
 	application.RegisterEvent[FeedRefreshResult](eventFeedRefreshed)
+	application.RegisterEvent[EpisodeDownloadEvent](eventEpisodeDownload)
 }
 
 const refreshTimeout = 30 * time.Second
+
+const downloadTimeout = 30 * time.Minute
 
 type FeedRefreshResult struct {
 	FeedID int64    `json:"feedId"`
 	Feed   api.Feed `json:"feed,omitempty"`
 	Error  string   `json:"error,omitempty"`
+}
+
+type EpisodeDownloadEvent struct {
+	ItemID           int64  `json:"itemId"`
+	Downloaded       int64  `json:"downloaded"`
+	Total            int64  `json:"total"`
+	Done             bool   `json:"done"`
+	DownloadFilename string `json:"downloadFilename,omitempty"`
+	Error            string `json:"error,omitempty"`
 }
 
 type FeedService struct {
@@ -139,6 +153,13 @@ func (s *FeedService) ListFeeds(ctx context.Context) ([]api.Feed, error) {
 }
 
 func (s *FeedService) DeleteFeed(ctx context.Context, feedID int64) error {
+	feed, err := s.store.GetFeed(ctx, feedID)
+	if err != nil {
+		return err
+	}
+	if feed != nil {
+		_ = podcast.DeletePodcastDir(feed.Title)
+	}
 	return s.store.DeleteFeed(ctx, feedID)
 }
 
@@ -191,4 +212,57 @@ func (s *FeedService) SearchPodcasts(ctx context.Context, term string) ([]api.Po
 
 func (s *FeedService) DiscoverFeeds(ctx context.Context, siteURL string) ([]api.DiscoveredFeed, error) {
 	return feed.DiscoverFeedURLs(ctx, normalizeURL(siteURL))
+}
+
+func (s *FeedService) DownloadEpisode(ctx context.Context, itemID int64) error {
+	item, err := s.store.GetItem(ctx, itemID)
+	if err != nil {
+		return err
+	}
+	if item == nil {
+		return fmt.Errorf("no such item: %d", itemID)
+	}
+	if item.AudioURL == "" {
+		return fmt.Errorf("item %d has no audio", itemID)
+	}
+	feed, err := s.store.GetFeed(ctx, item.FeedID)
+	if err != nil {
+		return err
+	}
+	if feed == nil {
+		return fmt.Errorf("no such feed: %d", item.FeedID)
+	}
+
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
+		defer cancel()
+
+		relPath, err := podcast.DownloadEpisode(bgCtx, feed.Title, item.Title, item.AudioURL, func(downloaded, total int64) {
+			s.emitEvent(eventEpisodeDownload, EpisodeDownloadEvent{ItemID: itemID, Downloaded: downloaded, Total: total})
+		})
+		if err != nil {
+			s.emitEvent(eventEpisodeDownload, EpisodeDownloadEvent{ItemID: itemID, Error: err.Error()})
+			return
+		}
+		if err := s.store.SetItemDownload(bgCtx, itemID, relPath); err != nil {
+			s.emitEvent(eventEpisodeDownload, EpisodeDownloadEvent{ItemID: itemID, Error: err.Error()})
+			return
+		}
+		s.emitEvent(eventEpisodeDownload, EpisodeDownloadEvent{ItemID: itemID, Done: true, DownloadFilename: relPath})
+	}()
+	return nil
+}
+
+func (s *FeedService) DeleteDownload(ctx context.Context, itemID int64) error {
+	item, err := s.store.GetItem(ctx, itemID)
+	if err != nil {
+		return err
+	}
+	if item == nil || item.DownloadFilename == "" {
+		return nil
+	}
+	if err := podcast.DeleteEpisode(item.DownloadFilename); err != nil {
+		return err
+	}
+	return s.store.SetItemDownload(ctx, itemID, "")
 }

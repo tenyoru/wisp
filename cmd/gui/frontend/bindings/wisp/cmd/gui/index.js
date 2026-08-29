@@ -8,5 +8,6 @@ export {
 };
 
 export {
+    EpisodeDownloadEvent,
     FeedRefreshResult
 } from "./models.js";

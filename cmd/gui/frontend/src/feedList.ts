@@ -10,8 +10,6 @@ const refreshingIds = new Set<number>();
 
 const listEl = requireEl<HTMLUListElement>("feed-list");
 const refreshAllBtn = requireEl<HTMLButtonElement>("refresh-all-btn");
-const feedFilterEl = requireEl<HTMLDivElement>("feed-filter");
-const feedFilterButtons = [...feedFilterEl.querySelectorAll<HTMLButtonElement>(".feed-filter-btn")];
 
 interface RowEntry {
     li: HTMLLIElement;
@@ -19,7 +17,6 @@ interface RowEntry {
     titleEl: HTMLDivElement;
     metaEl: HTMLDivElement;
     refreshBtn: HTMLButtonElement;
-    kind: FeedKind;
     lastIconKey: string;
 }
 
@@ -77,7 +74,6 @@ function buildFeedRow(feed: Feed): RowEntry {
         titleEl,
         metaEl,
         refreshBtn,
-        kind: feed.kind,
         lastIconKey: iconKeyFor(feed),
     };
     return entry;
@@ -92,7 +88,6 @@ async function updateFeedRow(entry: RowEntry, feed: Feed): Promise<void> {
         entry.lastIconKey = iconKey;
     }
     entry.titleEl.textContent = feed.title || feed.url;
-    entry.kind = feed.kind;
 
     const kindLabel = feed.kind === FeedKind.FeedKindPodcast ? "Podcast" : "Article";
     let itemCount = 0;
@@ -106,54 +101,6 @@ async function updateFeedRow(entry: RowEntry, feed: Feed): Promise<void> {
     entry.refreshBtn.disabled = isRefreshing;
     entry.refreshBtn.classList.toggle("is-spinning", isRefreshing);
 }
-
-type FeedFilterValue = "all" | "article" | "podcast";
-const FEED_FILTER_STORAGE_KEY = "wisp:feedFilter";
-
-function loadStoredFeedFilter(): FeedFilterValue {
-    const stored = localStorage.getItem(FEED_FILTER_STORAGE_KEY);
-    return stored === "article" || stored === "podcast" ? stored : "all";
-}
-
-let currentFeedFilter: FeedFilterValue = loadStoredFeedFilter();
-
-function feedFilterMatches(kind: FeedKind): boolean {
-    if (currentFeedFilter === "article") return kind === FeedKind.FeedKindArticle;
-    if (currentFeedFilter === "podcast") return kind === FeedKind.FeedKindPodcast;
-    return true;
-}
-
-const filterEmptyEl = el("li", { className: "empty-state", textContent: "No feeds match this filter." });
-
-function applyFeedFilter(): void {
-    for (const btn of feedFilterButtons) {
-        btn.classList.toggle("is-active", btn.dataset.filter === currentFeedFilter);
-    }
-
-    let visibleCount = 0;
-    for (const entry of rowElements.values()) {
-        const matches = feedFilterMatches(entry.kind);
-        entry.li.hidden = !matches;
-        if (matches) visibleCount++;
-    }
-
-    if (rowElements.size > 0 && visibleCount === 0) {
-        listEl.append(filterEmptyEl);
-    } else {
-        filterEmptyEl.remove();
-    }
-}
-
-for (const btn of feedFilterButtons) {
-    btn.addEventListener("click", () => {
-        const value = btn.dataset.filter;
-        if (value !== "all" && value !== "article" && value !== "podcast") return;
-        currentFeedFilter = value;
-        localStorage.setItem(FEED_FILTER_STORAGE_KEY, value);
-        applyFeedFilter();
-    });
-}
-applyFeedFilter();
 
 let loadFeedsInFlight: Promise<void> | null = null;
 let loadFeedsQueued = false;
@@ -210,8 +157,6 @@ async function loadFeedsOnce(): Promise<void> {
     for (const child of [...listEl.children]) {
         if (!validLis.has(child as HTMLLIElement)) child.remove();
     }
-
-    applyFeedFilter();
 }
 
 export async function deleteFeed(id: number): Promise<void> {

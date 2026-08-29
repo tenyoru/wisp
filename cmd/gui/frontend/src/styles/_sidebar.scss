@@ -1,8 +1,8 @@
-// Below this, a fixed 196px sidebar would eat most of the window.
+// Below this, a full-label sidebar would eat most of the window.
 $collapse-width: 640px;
 
 .sidebar {
-    width: 196px;
+    width: fit-content;
     flex: 0 0 auto;
     height: 100%;
     background: var(--bg);
@@ -33,7 +33,6 @@ $collapse-width: 640px;
 
     &.is-active {
         color: var(--text);
-        font-weight: 600;
         cursor: default;
 
         &::before {

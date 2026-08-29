@@ -21,6 +21,7 @@ article" and "finding a podcast" don't grow inside the feed package.
 - [x] `FetchIcon`/`FetchDirectIcon` — site favicon discovery + direct URL fetch (iTunes artwork)
 - [x] `DiscoverFeedURLs` — scans a page's `<link rel="alternate">` tags, returns every feed it advertises
 - [ ] OPML import/export
+- [ ] `audioEnclosure` only matches `type` prefixed `audio` — a video-only podcast enclosure (`video/mp4` etc.) currently has no `AudioURL`, so the whole item is miscategorized as an article with no player, download, or transcript
 
 ## internal/article
 - [x] `ResolveArticleMarkdown` — content:encoded → Readability extraction → sanitized teaser fallback, converted to Markdown (`go-readability` + `html-to-markdown` + `bluemonday`)
@@ -53,6 +54,7 @@ article" and "finding a podcast" don't grow inside the feed package.
 - [ ] Everything — not started. Expose feeds/items to AI agents (list feeds, search/list items, fetch `ItemMarkdown`, mark saved/liked) as MCP tools, reusing `internal/db`/`FeedService` logic directly rather than duplicating it
 - [ ] Pick a Go MCP SDK, and a transport (stdio for local Claude Desktop/Code config vs. HTTP/SSE)
 - [ ] Decide where it lives: new `cmd/mcp`, or a mode/flag on an existing binary
+- [ ] Don't hand an agent `ItemMarkdown`'s raw output for a podcast transcript as-is — it wraps every cue in its own `[text](#t=seconds)` seek-link (`internal/podcast/subtitles.go`, for the GUI's click-to-seek), which is unclickable noise to an agent and burns context for nothing. Either add a plain-text transcript resolver without cue-links, or strip markdown links before returning from the MCP tool.
 
 ## Sync server
 - [ ] Everything — not started. Today wisp is fully local: `cmd/cli` and `cmd/gui` each open the same SQLite file directly, no daemon, no IPC (see `internal/db`'s package doc)
@@ -65,7 +67,7 @@ article" and "finding a podcast" don't grow inside the feed package.
 - [x] `cmd/gui`: call `feed.FetchAndParse` → `db.UpsertFeed`/`UpsertItems` on subscribe/refresh
 - [x] `cmd/gui`: article reading view — click an item to expand its rendered article (`FeedService.ItemMarkdown` → `marked` + `highlight.js`, no caching yet, resolves fresh on every expand)
 - [ ] `cmd/gui`: `glamour` added to go.mod but unused — no CLI/TUI to render into yet
-- [ ] `cmd/gui`: podcast playback — no player, `internal/media` is still an empty stub
+- [x] `cmd/gui`: podcast playback — in-app `<audio>` player, on-demand episode download, show notes/transcript below the player (prefers `podcast:transcript` when a feed publishes one, falls back to show notes)
 - [ ] `cmd/cli`: actual TUI/subcommands — currently a one-line placeholder `main()`
 - [ ] `cmd/gui`: save/like buttons on item rows + a Saved and a Liked view (Liked ordered by most-recently-liked, not pub date)
 - [ ] `cmd/gui` (desktop): local Markdown preview API — serve a cached article's `.md` file as rendered HTML over HTTP, so an external editor/tool can point at it and preview the file directly (likely piggybacks on the existing `-tags server` HTTP mode rather than a new server)

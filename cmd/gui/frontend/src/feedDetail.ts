@@ -167,9 +167,26 @@ function renderPodcastPlayer(item: Item): HTMLElement {
     return el("div", { className: "podcast-player" }, [audioEl, currentDownloadStatusEl]);
 }
 
+// Transcript paragraphs are prefixed with a [MM:SS](#t=seconds) link
+// (see internal/podcast/subtitles.go) — clicking one seeks the player
+// instead of navigating.
+function seekOnTimeLinkClick(e: MouseEvent): void {
+    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#t="]');
+    if (!link || !currentAudioEl) return;
+    e.preventDefault();
+    currentAudioEl.currentTime = Number(link.hash.slice("#t=".length));
+}
+
+function isParseableTranscript(item: Item): boolean {
+    const type = item.transcriptType;
+    return type.includes("vtt") || type.includes("srt") || type.includes("subrip");
+}
+
 // Silent on failure/empty — many podcasts have nothing beyond the description already shown.
 async function loadShowNotes(item: Item, requestId: number): Promise<void> {
     const notesEl = el("div", { className: "podcast-shownotes" });
+    notesEl.classList.toggle("is-transcript", isParseableTranscript(item));
+    notesEl.addEventListener("click", seekOnTimeLinkClick);
     postBodyEl.append(el("h2", { className: "podcast-shownotes-label", textContent: "Show notes" }), notesEl);
 
     let md: string;

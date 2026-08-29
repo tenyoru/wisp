@@ -102,6 +102,33 @@
     letter-spacing: 0.04em;
 }
 
+// Each paragraph's first link is its visible [MM:SS] badge; every other
+// #t= link wraps one cue for future now-playing highlight/seek and stays
+// visually inline with the text around it.
+.podcast-shownotes.is-transcript p {
+    position: relative;
+    padding-left: 3.25em;
+
+    > a:first-child {
+        position: absolute;
+        left: 0;
+        color: var(--muted);
+        font-size: var(--text-xs);
+        font-variant-numeric: tabular-nums;
+        text-decoration: none;
+
+        &:hover { color: var(--text); }
+    }
+
+    a:not(:first-child) {
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+
+        &.is-current { background: var(--surface); }
+    }
+}
+
 .post-toc-l3 { padding-left: var(--space-12); }
 .post-toc-l4, .post-toc-l5, .post-toc-l6 { padding-left: var(--space-24); }
 

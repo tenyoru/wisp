@@ -16,7 +16,7 @@ const SAFE_IMG_PROTOCOL = /^(?:https?:|data:image\/)/i;
 const HAS_PROTOCOL = /^[a-z][a-z0-9+.-]*:/i;
 
 function safeHref(href: string): string | null {
-    if (href.startsWith("#")) return null;
+    if (href.startsWith("#")) return href.startsWith("#t=") ? href : null;
     return HAS_PROTOCOL.test(href) && !SAFE_PROTOCOL.test(href) ? null : href;
 }
 

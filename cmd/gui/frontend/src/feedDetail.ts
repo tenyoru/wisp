@@ -171,11 +171,13 @@ function seekOnTimeLinkClick(e: MouseEvent): void {
     const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#t="]');
     if (!link || !currentAudioEl) return;
     e.preventDefault();
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) return;
     currentAudioEl.currentTime = Number(link.hash.slice("#t=".length));
 }
 
 function isParseableTranscript(item: Item): boolean {
-    const type = item.transcriptType;
+    const type = item.transcriptType ?? "";
     return type.includes("vtt") || type.includes("srt") || type.includes("subrip");
 }
 

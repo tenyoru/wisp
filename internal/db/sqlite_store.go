@@ -85,6 +85,14 @@ func Open(path string) (*SQLiteStore, error) {
 		return nil, fmt.Errorf("migrate items guid: %w", err)
 	}
 
+	// UpsertItems' guid-reconciliation lookup runs on every refresh; the
+	// index must be (re)created after migrateItemsGUID since recreating
+	// the table there drops it.
+	if _, err := dbConn.Exec("CREATE INDEX IF NOT EXISTS idx_items_feed_link ON items(feed_id, link)"); err != nil {
+		dbConn.Close()
+		return nil, fmt.Errorf("create items link index: %w", err)
+	}
+
 	return &SQLiteStore{db: dbConn}, nil
 }
 
@@ -272,6 +280,20 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	}
 	defer tx.Rollback()
 
+	// migrateItemsGUID backfilled guid = link for rows from before the
+	// (feed_id, guid) key existed. Adopt the real guid for that row (found
+	// by its still-matching link) before the main upsert, so it updates in
+	// place instead of leaving a stale orphan next to a freshly inserted
+	// duplicate. Skipped when link is empty: feeds with no per-item link
+	// (the bug (feed_id, guid) itself fixes) share that empty link across
+	// every item, so matching on it would collapse them right back down.
+	reconcile, err := tx.PrepareContext(ctx, `
+		UPDATE items SET guid = ? WHERE feed_id = ? AND link = ? AND link != '' AND guid != ?`)
+	if err != nil {
+		return fmt.Errorf("upsert items: %w", err)
+	}
+	defer reconcile.Close()
+
 	stmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO items (feed_id, guid, title, link, pub_date, audio_url, description, content_encoded, transcript_url, transcript_type)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -290,6 +312,9 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	defer stmt.Close()
 
 	for _, item := range items {
+		if _, err := reconcile.ExecContext(ctx, item.GUID, feedID, item.Link, item.GUID); err != nil {
+			return fmt.Errorf("reconcile item %q: %w", item.GUID, err)
+		}
 		if _, err := stmt.ExecContext(ctx, feedID, item.GUID, item.Title, item.Link, item.PubDate,
 			item.AudioURL, item.Description, item.ContentEncoded,
 			item.TranscriptURL, item.TranscriptType); err != nil {

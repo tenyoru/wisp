@@ -131,6 +131,17 @@ audioEl.addEventListener("seeked", () => {
     currentTimeEl.textContent = formatTime(audioEl.currentTime);
 });
 
+// A seek past the buffered range can hang forever with no error if the
+// remote server doesn't support HTTP range requests — this catches that.
+let seekWatchdog: number | undefined;
+audioEl.addEventListener("seeking", () => {
+    window.clearTimeout(seekWatchdog);
+    seekWatchdog = window.setTimeout(() => {
+        if (audioEl.seeking) setStatus("Couldn't seek while streaming — try downloading the episode.", true);
+    }, 8000);
+});
+audioEl.addEventListener("playing", () => window.clearTimeout(seekWatchdog));
+
 audioEl.addEventListener("loadedmetadata", () => {
     durationEl.textContent = formatTime(audioEl.duration);
 });

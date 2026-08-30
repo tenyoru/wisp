@@ -38,12 +38,12 @@
 }
 
 .container.is-wide {
-    max-width: 900px;
+    max-width: min(1300px, 90%);
 }
 
 .container.is-wide #post-detail-panel {
     display: grid;
-    grid-template-columns: 1fr 480px 1fr;
+    grid-template-columns: 1fr 720px 1fr;
     column-gap: var(--space-24);
 
     > #post-detail-back { grid-column: 2; grid-row: 1; }
@@ -117,7 +117,7 @@
 .podcast-shownotes.is-transcript p {
     position: relative;
     margin: 0 0 var(--space-8);
-    padding-left: 2.25em;
+    padding-left: 3rem;
 
     // draggable="false" alone doesn't stop WebKitGTK's own link-drag
     a[href^="#t="] {
@@ -125,9 +125,13 @@
         user-drag: none;
     }
 
+    // Fixed width + right-align so longer timecodes (10:26) don't run into
+    // the text the way shorter ones (7:34) leave room for.
     > a:first-child {
         position: absolute;
         left: 0;
+        width: 2.5rem;
+        text-align: right;
         color: var(--muted);
         font-size: var(--text-xs);
         font-variant-numeric: tabular-nums;

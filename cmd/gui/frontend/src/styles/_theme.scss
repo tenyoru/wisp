@@ -27,6 +27,10 @@
     --space-32: 32px;
     --space-64: 64px;
 
+    // Scales every --text-* size (all rem-based) without touching the
+    // px-based spacing scale or icon dimensions.
+    font-size: 20px;
+
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
         sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
     color-scheme: dark;

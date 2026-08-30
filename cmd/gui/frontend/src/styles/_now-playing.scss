@@ -16,6 +16,10 @@
     -webkit-backdrop-filter: blur(20px);
 
     &[hidden] { display: none; }
+
+    @media (min-width: 1600px) {
+        grid-template-columns: minmax(160px, 1fr) minmax(0, 900px) minmax(80px, 1fr);
+    }
 }
 
 .now-playing-track {
@@ -165,6 +169,7 @@
             background: var(--text);
             cursor: pointer;
         }
+
     }
 }
 

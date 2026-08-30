@@ -33,3 +33,10 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
+@media (min-width: 1600px) {
+    :root { font-size: 24px; }
+}
+@media (min-width: 2200px) {
+    :root { font-size: 28px; }
+}

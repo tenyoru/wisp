@@ -119,7 +119,7 @@
     margin: 0 0 var(--space-8);
     padding-left: 3rem;
 
-    a[href^="#t="] {
+    a[data-t] {
         -webkit-user-drag: none;
         user-drag: none;
     }

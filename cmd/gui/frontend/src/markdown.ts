@@ -52,8 +52,10 @@ marked.use({
             const safe = safeHref(href);
             if (!safe) return text;
             const titleAttr = title ? ` title="${escapeHtml(title)}"` : "";
-            const draggableAttr = safe.startsWith("#t=") ? ` draggable="false"` : "";
-            return `<a href="${escapeHtml(safe)}"${titleAttr}${draggableAttr}>${text}</a>`;
+            if (safe.startsWith("#t=")) {
+                return `<a data-t="${escapeHtml(safe.slice(3))}" draggable="false"${titleAttr}>${text}</a>`;
+            }
+            return `<a href="${escapeHtml(safe)}"${titleAttr}>${text}</a>`;
         },
         image({ href, title, text }) {
             const safe = safeImgSrc(href);

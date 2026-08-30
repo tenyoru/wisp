@@ -52,11 +52,14 @@ marked.use({
             const safe = safeHref(href);
             if (!safe) return text;
             const titleAttr = title ? ` title="${escapeHtml(title)}"` : "";
-            // #t= links tile the whole transcript; without draggable="false"
-            // a click-drag to select text grabs the link instead (native
-            // <a> drag-source behavior, before any JS ever sees the event).
-            const draggableAttr = safe.startsWith("#t=") ? ` draggable="false"` : "";
-            return `<a href="${escapeHtml(safe)}"${titleAttr}${draggableAttr}>${text}</a>`;
+            if (safe.startsWith("#t=")) {
+                // No href: avoids the browser's hover status-bar URL preview.
+                // draggable="false" — without it, a click-drag to select text
+                // grabs the link instead (native <a> drag-source behavior,
+                // before any JS ever sees the event).
+                return `<a data-t="${escapeHtml(safe.slice(3))}" draggable="false"${titleAttr}>${text}</a>`;
+            }
+            return `<a href="${escapeHtml(safe)}"${titleAttr}>${text}</a>`;
         },
         image({ href, title, text }) {
             const safe = safeImgSrc(href);

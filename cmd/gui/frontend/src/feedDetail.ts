@@ -176,13 +176,12 @@ async function loadShowNotes(item: Item, requestId: number): Promise<void> {
     const notesEl = el("div", { className: "podcast-shownotes" });
     notesEl.classList.toggle("is-transcript", isParseableTranscript(item));
     notesEl.addEventListener("click", (e) => {
-        const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#t="]');
+        const link = (e.target as HTMLElement).closest<HTMLAnchorElement>("a[data-t]");
         if (!link) return;
-        e.preventDefault();
         // A drag-to-select release over a link still fires click.
         const selection = window.getSelection();
         if (selection && !selection.isCollapsed) return;
-        player.play(item, audioSrc(item), Number(link.hash.slice("#t=".length)));
+        player.play(item, audioSrc(item), Number(link.dataset.t));
     });
     postBodyEl.append(el("h2", { className: "podcast-shownotes-label", textContent: "Show notes" }), notesEl);
 

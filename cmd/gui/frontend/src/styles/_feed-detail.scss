@@ -120,7 +120,7 @@
     padding-left: 3rem;
 
     // draggable="false" alone doesn't stop WebKitGTK's own link-drag
-    a[href^="#t="] {
+    a[data-t] {
         -webkit-user-drag: none;
         user-drag: none;
     }

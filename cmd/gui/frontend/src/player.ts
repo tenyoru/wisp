@@ -1,5 +1,6 @@
 import { requireEl } from "./dom";
 import { renderFeedIcon } from "./avatar";
+import { setStatus } from "./status";
 import { FeedService } from "../bindings/wisp/cmd/gui";
 import type { Item } from "../bindings/wisp/internal/api";
 
@@ -51,15 +52,19 @@ async function loadArtwork(feedId: number): Promise<void> {
 }
 
 export function play(item: Item, src: string, atSeconds?: number): void {
-    if (currentItem?.id !== item.id) {
+    const isNewItem = currentItem?.id !== item.id;
+    if (isNewItem) {
         audioEl.src = src;
         currentItem = item;
         titleEl.textContent = item.title || item.link;
         void loadArtwork(item.feedId);
         barEl.hidden = false;
     }
-    if (atSeconds !== undefined) audioEl.currentTime = atSeconds;
-    audioEl.play();
+    if (atSeconds !== undefined) {
+        if (isNewItem) audioEl.addEventListener("loadedmetadata", () => { audioEl.currentTime = atSeconds; }, { once: true });
+        else audioEl.currentTime = atSeconds;
+    }
+    audioEl.play().catch((err) => setStatus(`Couldn't play episode: ${err}`, true));
 }
 
 export function updateSrc(itemId: number, src: string): void {
@@ -72,7 +77,7 @@ export function updateSrc(itemId: number, src: string): void {
 }
 
 playBtn.addEventListener("click", () => {
-    if (audioEl.paused) audioEl.play();
+    if (audioEl.paused) audioEl.play().catch((err) => setStatus(`Couldn't play episode: ${err}`, true));
     else audioEl.pause();
 });
 

@@ -116,7 +116,8 @@
 
 .podcast-shownotes.is-transcript p {
     position: relative;
-    padding-left: 3.25em;
+    margin: 0 0 var(--space-8);
+    padding-left: 2.25em;
 
     // draggable="false" alone doesn't stop WebKitGTK's own link-drag
     a[href^="#t="] {

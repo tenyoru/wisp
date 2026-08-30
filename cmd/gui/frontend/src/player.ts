@@ -120,6 +120,15 @@ audioEl.addEventListener("seeked", () => {
     currentTimeEl.textContent = formatTime(audioEl.currentTime);
 });
 
+let seekWatchdog: number | undefined;
+audioEl.addEventListener("seeking", () => {
+    window.clearTimeout(seekWatchdog);
+    seekWatchdog = window.setTimeout(() => {
+        if (audioEl.seeking) setStatus("Couldn't seek while streaming — try downloading the episode.", true);
+    }, 8000);
+});
+audioEl.addEventListener("playing", () => window.clearTimeout(seekWatchdog));
+
 audioEl.addEventListener("loadedmetadata", () => {
     durationEl.textContent = formatTime(audioEl.duration);
 });

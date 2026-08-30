@@ -83,7 +83,19 @@
     gap: var(--space-12);
 }
 
-.podcast-audio { width: 100%; }
+.podcast-play-btn {
+    align-self: flex-start;
+    border: none;
+    background: var(--text);
+    color: var(--bg);
+    font-size: var(--text-md);
+    font-weight: 600;
+    padding: var(--space-10) var(--space-16);
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:hover { opacity: 0.9; }
+}
 
 .podcast-download {
     display: flex;

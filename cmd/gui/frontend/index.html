@@ -6,6 +6,7 @@
     <title>wisp</title>
 </head>
 <body>
+<div id="app-shell">
 <nav class="sidebar" aria-label="Primary">
     <button type="button" class="sidebar-item" aria-label="Timeline" data-view="timeline">
         <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 7.5H13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6.5 10.5H13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6.5 13.5H10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -25,6 +26,7 @@
     </button>
 </nav>
 
+<div id="content-shell">
 <main id="main-scroll">
 <div id="app-container" class="container">
     <section id="view-timeline" class="view" data-view="timeline" hidden>
@@ -108,6 +110,38 @@
     </section>
 </div>
 </main>
+
+<div id="now-playing-bar" class="now-playing" hidden>
+    <div class="now-playing-track">
+        <div id="now-playing-artwork" class="now-playing-artwork"></div>
+        <div class="now-playing-info">
+            <div id="now-playing-title" class="now-playing-title"></div>
+            <div id="now-playing-show" class="now-playing-show"></div>
+        </div>
+    </div>
+    <div class="now-playing-transport">
+        <div class="now-playing-buttons">
+            <button id="now-playing-back" type="button" class="now-playing-skip" aria-label="Back 15 seconds">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M11 5L4 10L11 15V5Z" fill="currentColor"/><path d="M17 5L10 10L17 15V5Z" fill="currentColor"/></svg>
+            </button>
+            <button id="now-playing-play" type="button" class="now-playing-play" aria-label="Play/pause">
+                <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M6 4L16 10L6 16V4Z" fill="currentColor"/></svg>
+            </button>
+            <button id="now-playing-forward" type="button" class="now-playing-skip" aria-label="Forward 15 seconds">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M9 5L16 10L9 15V5Z" fill="currentColor"/><path d="M3 5L10 10L3 15V5Z" fill="currentColor"/></svg>
+            </button>
+        </div>
+        <div class="now-playing-scrub">
+            <span id="now-playing-current">0:00</span>
+            <input id="now-playing-seek" type="range" min="0" max="1000" value="0"/>
+            <span id="now-playing-duration">0:00</span>
+        </div>
+    </div>
+    <div class="now-playing-extra">
+        <button id="now-playing-close" type="button" class="now-playing-close" aria-label="Close player">✕</button>
+    </div>
+</div>
+</div>
 
 <script type="module" src="/src/main.ts"></script>
 </body>

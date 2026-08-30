@@ -8,6 +8,7 @@ import { renderMarkdown } from "./markdown";
 import { deleteFeed, refreshFeed, loadFeeds } from "./feedList";
 import { createViewGroup } from "./views";
 import { setStatus } from "./status";
+import * as player from "./player";
 
 const containerEl = requireEl<HTMLDivElement>("app-container");
 
@@ -109,10 +110,8 @@ Events.On("feed-refreshed", async (evt) => {
 });
 
 let postRequestId = 0;
-let currentPostItemId: number | null = null;
 let currentPostItem: Item | null = null;
 let currentDownloadStatusEl: HTMLElement | null = null;
-let currentAudioEl: HTMLAudioElement | null = null;
 
 function audioSrc(item: Item): string {
     if (!item.downloadFilename) return item.audioUrl;
@@ -138,7 +137,7 @@ function renderDownloadStatus(item: Item): void {
                 return;
             }
             item.downloadFilename = "";
-            if (currentAudioEl) currentAudioEl.src = audioSrc(item);
+            player.updateSrc(item.id, audioSrc(item));
             renderDownloadStatus(item);
         });
         statusEl.replaceChildren(el("span", { textContent: "Downloaded" }), deleteBtn);
@@ -160,22 +159,11 @@ function renderDownloadStatus(item: Item): void {
 
 function renderPodcastPlayer(item: Item): HTMLElement {
     currentPostItem = item;
-    const audioEl = el("audio", { className: "podcast-audio", controls: true, src: audioSrc(item) });
-    currentAudioEl = audioEl;
+    const playBtn = el("button", { type: "button", className: "podcast-play-btn", textContent: "▶ Play episode" });
+    playBtn.addEventListener("click", () => player.play(item, audioSrc(item)));
     currentDownloadStatusEl = el("div", { className: "podcast-download" });
     renderDownloadStatus(item);
-    return el("div", { className: "podcast-player" }, [audioEl, currentDownloadStatusEl]);
-}
-
-// #t=seconds links (internal/podcast/subtitles.go) seek instead of navigating.
-function seekOnTimeLinkClick(e: MouseEvent): void {
-    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#t="]');
-    if (!link || !currentAudioEl) return;
-    e.preventDefault();
-    // A drag-to-select release over a link still fires click.
-    const selection = window.getSelection();
-    if (selection && !selection.isCollapsed) return;
-    currentAudioEl.currentTime = Number(link.hash.slice("#t=".length));
+    return el("div", { className: "podcast-player" }, [playBtn, currentDownloadStatusEl]);
 }
 
 function isParseableTranscript(item: Item): boolean {
@@ -187,7 +175,15 @@ function isParseableTranscript(item: Item): boolean {
 async function loadShowNotes(item: Item, requestId: number): Promise<void> {
     const notesEl = el("div", { className: "podcast-shownotes" });
     notesEl.classList.toggle("is-transcript", isParseableTranscript(item));
-    notesEl.addEventListener("click", seekOnTimeLinkClick);
+    notesEl.addEventListener("click", (e) => {
+        const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#t="]');
+        if (!link) return;
+        e.preventDefault();
+        // A drag-to-select release over a link still fires click.
+        const selection = window.getSelection();
+        if (selection && !selection.isCollapsed) return;
+        player.play(item, audioSrc(item), Number(link.hash.slice("#t=".length)));
+    });
     postBodyEl.append(el("h2", { className: "podcast-shownotes-label", textContent: "Show notes" }), notesEl);
 
     let md: string;
@@ -233,7 +229,7 @@ Events.On("episode-download", (evt) => {
     }
     if (result.done) {
         currentPostItem.downloadFilename = result.downloadFilename;
-        if (currentAudioEl) currentAudioEl.src = audioSrc(currentPostItem);
+        player.updateSrc(currentPostItem.id, audioSrc(currentPostItem));
         renderDownloadStatus(currentPostItem);
         return;
     }
@@ -253,7 +249,6 @@ export async function openPostDetail(item: Item): Promise<void> {
     containerEl.classList.remove("is-wide");
 
     currentPostItem = null;
-    currentAudioEl = null;
     currentDownloadStatusEl = null;
 
     if (item.audioUrl) {
@@ -298,4 +293,9 @@ export async function openPostDetail(item: Item): Promise<void> {
 postBackBtn.addEventListener("click", () => {
     containerEl.classList.remove("is-wide");
     feedViews.show("detail");
+});
+
+player.setNavigationHandlers({
+    openItem: (item) => openPostDetail(item),
+    openFeed: (feedId) => openFeedDetail(feedId),
 });

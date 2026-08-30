@@ -52,9 +52,11 @@ func main() {
 	})
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:  "wisp",
-		Width:  1000,
-		Height: 618,
+		Title:     "wisp",
+		Width:     1000,
+		Height:    618,
+		MinWidth:  640,
+		MinHeight: 480,
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,

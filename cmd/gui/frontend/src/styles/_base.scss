@@ -10,6 +10,7 @@ body {
     height: 100vh;
     height: 100dvh;
     display: flex;
+    flex-direction: column;
     /* App, not a document — nothing selectable/draggable by default.
        <img> still needs an explicit no-drag override elsewhere; browsers
        ignore user-select for drag. */
@@ -17,14 +18,32 @@ body {
     user-select: none;
 }
 
-// The scroll container spans the full window (minus the sidebar) so the
-// wheel/trackpad grabs anywhere over it, not just over the narrower
-// centered content below.
-#main-scroll {
+#app-shell {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+}
+
+// Column next to the sidebar, holding the scrollable content. The
+// now-playing bar overlays its bottom edge (not the sidebar) so its glass
+// background has scrolled content underneath to blur.
+#content-shell {
+    position: relative;
     flex: 1;
     min-width: 0;
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+// The scroll container spans the full column so the wheel/trackpad grabs
+// anywhere over it, not just over the narrower centered content below.
+// padding-bottom reserves room so content can still scroll clear of the
+// now-playing bar overlaid on top of it.
+#main-scroll {
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    padding-bottom: 88px;
 }
 
 .container {

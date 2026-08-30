@@ -1,5 +1,6 @@
 import { requireEl } from "./dom";
 import { renderFeedIcon } from "./avatar";
+import { setStatus } from "./status";
 import { FeedService } from "../bindings/wisp/cmd/gui";
 import type { Item } from "../bindings/wisp/internal/api";
 
@@ -57,15 +58,21 @@ async function loadArtwork(feedId: number): Promise<void> {
 // Loads item if it isn't already the one playing (a src change resets
 // playback position), then plays — optionally seeking first.
 export function play(item: Item, src: string, atSeconds?: number): void {
-    if (currentItem?.id !== item.id) {
+    const isNewItem = currentItem?.id !== item.id;
+    if (isNewItem) {
         audioEl.src = src;
         currentItem = item;
         titleEl.textContent = item.title || item.link;
         void loadArtwork(item.feedId);
         barEl.hidden = false;
     }
-    if (atSeconds !== undefined) audioEl.currentTime = atSeconds;
-    audioEl.play();
+    if (atSeconds !== undefined) {
+        // A src just set has no metadata yet — WebKit can drop a currentTime
+        // assigned before loadedmetadata fires, so defer it in that case.
+        if (isNewItem) audioEl.addEventListener("loadedmetadata", () => { audioEl.currentTime = atSeconds; }, { once: true });
+        else audioEl.currentTime = atSeconds;
+    }
+    audioEl.play().catch((err) => setStatus(`Couldn't play episode: ${err}`, true));
 }
 
 // A download finishing updates the source out from under a possibly-
@@ -80,7 +87,7 @@ export function updateSrc(itemId: number, src: string): void {
 }
 
 playBtn.addEventListener("click", () => {
-    if (audioEl.paused) audioEl.play();
+    if (audioEl.paused) audioEl.play().catch((err) => setStatus(`Couldn't play episode: ${err}`, true));
     else audioEl.pause();
 });
 

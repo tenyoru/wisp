@@ -6,6 +6,13 @@ html, body {
     color: var(--text);
 }
 
+@media (min-width: 1600px) {
+    html { zoom: 1.35; }
+}
+@media (min-width: 2200px) {
+    html { zoom: 1.6; }
+}
+
 body {
     height: 100vh;
     height: 100dvh;
@@ -41,7 +48,7 @@ body {
 
 .container {
     margin: 0 auto;
-    max-width: 480px;
+    max-width: min(1000px, 85%);
     padding: var(--space-64) var(--space-24) var(--space-32);
 }
 

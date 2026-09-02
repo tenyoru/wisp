@@ -115,12 +115,14 @@ export function ListFeeds() {
 }
 
 /**
- * ListItems returns feedID's items, newest first.
+ * ListItems returns up to limit of feedID's items starting at offset, newest first.
  * @param {number} feedID
+ * @param {number} limit
+ * @param {number} offset
  * @returns {$CancellablePromise<api$0.Item[]>}
  */
-export function ListItems(feedID) {
-    return $Call.ByID(4029245267, feedID).then(/** @type {($result: any) => any} */(($result) => {
+export function ListItems(feedID, limit, offset) {
+    return $Call.ByID(4029245267, feedID, limit, offset).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType5($result);
     }));
 }

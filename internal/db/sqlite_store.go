@@ -86,6 +86,10 @@ func Open(path string) (*SQLiteStore, error) {
 		dbConn.Close()
 		return nil, fmt.Errorf("create items link index: %w", err)
 	}
+	if _, err := dbConn.Exec("CREATE INDEX IF NOT EXISTS idx_items_feed_pubdate ON items(feed_id, pub_date DESC)"); err != nil {
+		dbConn.Close()
+		return nil, fmt.Errorf("create items pub_date index: %w", err)
+	}
 
 	return &SQLiteStore{db: dbConn}, nil
 }
@@ -265,7 +269,7 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	defer tx.Rollback()
 
 	reconcile, err := tx.PrepareContext(ctx, `
-		UPDATE items SET guid = ? WHERE feed_id = ? AND link = ? AND link != '' AND guid != ?`)
+		UPDATE OR IGNORE items SET guid = ? WHERE feed_id = ? AND link = ? AND link != '' AND guid != ?`)
 	if err != nil {
 		return fmt.Errorf("upsert items: %w", err)
 	}
@@ -312,14 +316,15 @@ func scanItem(row interface{ Scan(...any) error }) (api.Item, error) {
 	return it, err
 }
 
-func (s *SQLiteStore) ListItems(ctx context.Context, feedID *int64) ([]api.Item, error) {
+func (s *SQLiteStore) ListItems(ctx context.Context, feedID *int64, limit, offset int) ([]api.Item, error) {
 	query := "SELECT " + itemColumns + " FROM items"
 	args := []any{}
 	if feedID != nil {
 		query += " WHERE feed_id = ?"
 		args = append(args, *feedID)
 	}
-	query += " ORDER BY pub_date DESC"
+	query += " ORDER BY pub_date DESC, id DESC LIMIT ? OFFSET ?"
+	args = append(args, limit, offset)
 
 	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -336,6 +341,21 @@ func (s *SQLiteStore) ListItems(ctx context.Context, feedID *int64) ([]api.Item,
 		items = append(items, item)
 	}
 	return items, rows.Err()
+}
+
+func (s *SQLiteStore) CountItems(ctx context.Context, feedID *int64) (int, error) {
+	query := "SELECT COUNT(*) FROM items"
+	args := []any{}
+	if feedID != nil {
+		query += " WHERE feed_id = ?"
+		args = append(args, *feedID)
+	}
+
+	var count int
+	if err := s.db.QueryRowContext(ctx, query, args...).Scan(&count); err != nil {
+		return 0, fmt.Errorf("count items: %w", err)
+	}
+	return count, nil
 }
 
 func (s *SQLiteStore) GetItem(ctx context.Context, itemID int64) (*api.Item, error) {

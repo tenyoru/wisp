@@ -184,15 +184,11 @@ func (s *FeedService) UpdateFeed(ctx context.Context, feedID int64, title, url s
 }
 
 func (s *FeedService) ItemCount(ctx context.Context, feedID int64) (int, error) {
-	items, err := s.store.ListItems(ctx, &feedID)
-	if err != nil {
-		return 0, err
-	}
-	return len(items), nil
+	return s.store.CountItems(ctx, &feedID)
 }
 
-func (s *FeedService) ListItems(ctx context.Context, feedID int64) ([]api.Item, error) {
-	return s.store.ListItems(ctx, &feedID)
+func (s *FeedService) ListItems(ctx context.Context, feedID int64, limit, offset int) ([]api.Item, error) {
+	return s.store.ListItems(ctx, &feedID, limit, offset)
 }
 
 func (s *FeedService) ItemMarkdown(ctx context.Context, itemID int64) (string, error) {

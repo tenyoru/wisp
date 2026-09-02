@@ -21,7 +21,9 @@ type Store interface {
 
 	UpsertItems(ctx context.Context, feedID int64, items []api.Item) error
 
-	ListItems(ctx context.Context, feedID *int64) ([]api.Item, error)
+	ListItems(ctx context.Context, feedID *int64, limit, offset int) ([]api.Item, error)
+
+	CountItems(ctx context.Context, feedID *int64) (int, error)
 
 	GetItem(ctx context.Context, itemID int64) (*api.Item, error)
 

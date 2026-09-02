@@ -27,8 +27,11 @@ type Store interface {
 
 	UpsertItems(ctx context.Context, feedID int64, items []api.Item) error
 
-	// ListItems: nil feedID lists across every feed.
-	ListItems(ctx context.Context, feedID *int64) ([]api.Item, error)
+	// ListItems: nil feedID lists across every feed, newest first.
+	ListItems(ctx context.Context, feedID *int64, limit, offset int) ([]api.Item, error)
+
+	// CountItems: nil feedID counts across every feed.
+	CountItems(ctx context.Context, feedID *int64) (int, error)
 
 	GetItem(ctx context.Context, itemID int64) (*api.Item, error)
 

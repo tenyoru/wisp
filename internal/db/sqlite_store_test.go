@@ -3,6 +3,7 @@ package db
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -148,7 +149,7 @@ func TestUpsertItemsAndList(t *testing.T) {
 		t.Fatalf("UpsertItems (update): %v", err)
 	}
 
-	got, err := store.ListItems(ctx, &feed.ID)
+	got, err := store.ListItems(ctx, &feed.ID, 100, 0)
 	if err != nil {
 		t.Fatalf("ListItems: %v", err)
 	}
@@ -171,7 +172,7 @@ func TestUpsertItemsAndList(t *testing.T) {
 		}
 	}
 
-	all, err := store.ListItems(ctx, nil)
+	all, err := store.ListItems(ctx, nil, 100, 0)
 	if err != nil {
 		t.Fatalf("ListItems(nil): %v", err)
 	}
@@ -215,7 +216,7 @@ func TestDeleteFeedCascadesItems(t *testing.T) {
 		t.Fatalf("DeleteFeed: %v", err)
 	}
 
-	items, err := store.ListItems(ctx, nil)
+	items, err := store.ListItems(ctx, nil, 100, 0)
 	if err != nil {
 		t.Fatalf("ListItems: %v", err)
 	}
@@ -286,5 +287,59 @@ func TestOpenIsReopenable(t *testing.T) {
 	}
 	if len(feeds) != 1 {
 		t.Fatalf("len(ListFeeds) after reopen = %d, want 1 (data should persist)", len(feeds))
+	}
+}
+
+func TestListItemsPagination(t *testing.T) {
+	ctx := context.Background()
+	store := openTestStore(t)
+
+	feed, err := store.UpsertFeed(ctx, "https://example.com/feed.xml", "Example", api.FeedKindArticle)
+	if err != nil {
+		t.Fatalf("UpsertFeed: %v", err)
+	}
+
+	items := make([]api.Item, 5)
+	for i := range items {
+		items[i] = api.Item{
+			GUID:    fmt.Sprintf("guid-%d", i),
+			Title:   fmt.Sprintf("Item %d", i),
+			PubDate: fmt.Sprintf("2026-01-%02dT00:00:00Z", i+1),
+		}
+	}
+	if err := store.UpsertItems(ctx, feed.ID, items); err != nil {
+		t.Fatalf("UpsertItems: %v", err)
+	}
+
+	count, err := store.CountItems(ctx, &feed.ID)
+	if err != nil {
+		t.Fatalf("CountItems: %v", err)
+	}
+	if count != 5 {
+		t.Fatalf("CountItems = %d, want 5", count)
+	}
+
+	page1, err := store.ListItems(ctx, &feed.ID, 2, 0)
+	if err != nil {
+		t.Fatalf("ListItems page1: %v", err)
+	}
+	if len(page1) != 2 || page1[0].Title != "Item 4" || page1[1].Title != "Item 3" {
+		t.Fatalf("page1 = %+v, want [Item 4, Item 3]", page1)
+	}
+
+	page2, err := store.ListItems(ctx, &feed.ID, 2, 2)
+	if err != nil {
+		t.Fatalf("ListItems page2: %v", err)
+	}
+	if len(page2) != 2 || page2[0].Title != "Item 2" || page2[1].Title != "Item 1" {
+		t.Fatalf("page2 = %+v, want [Item 2, Item 1]", page2)
+	}
+
+	page3, err := store.ListItems(ctx, &feed.ID, 2, 4)
+	if err != nil {
+		t.Fatalf("ListItems page3: %v", err)
+	}
+	if len(page3) != 1 || page3[0].Title != "Item 0" {
+		t.Fatalf("page3 = %+v, want [Item 0]", page3)
 	}
 }

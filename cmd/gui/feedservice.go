@@ -217,16 +217,12 @@ func (s *FeedService) UpdateFeed(ctx context.Context, feedID int64, title, url s
 // ItemCount reports how many items are stored for feedID, so the UI can
 // show a count without fetching every item's full fields.
 func (s *FeedService) ItemCount(ctx context.Context, feedID int64) (int, error) {
-	items, err := s.store.ListItems(ctx, &feedID)
-	if err != nil {
-		return 0, err
-	}
-	return len(items), nil
+	return s.store.CountItems(ctx, &feedID)
 }
 
-// ListItems returns feedID's items, newest first.
-func (s *FeedService) ListItems(ctx context.Context, feedID int64) ([]api.Item, error) {
-	return s.store.ListItems(ctx, &feedID)
+// ListItems returns up to limit of feedID's items starting at offset, newest first.
+func (s *FeedService) ListItems(ctx context.Context, feedID int64, limit, offset int) ([]api.Item, error) {
+	return s.store.ListItems(ctx, &feedID, limit, offset)
 }
 
 func (s *FeedService) ItemMarkdown(ctx context.Context, itemID int64) (string, error) {

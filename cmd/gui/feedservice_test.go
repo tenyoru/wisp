@@ -327,7 +327,7 @@ func TestFeedServiceListItems(t *testing.T) {
 		t.Fatalf("AddFeed: %v", err)
 	}
 
-	items, err := svc.ListItems(ctx, feed.ID)
+	items, err := svc.ListItems(ctx, feed.ID, 100, 0)
 	if err != nil {
 		t.Fatalf("ListItems: %v", err)
 	}
@@ -380,7 +380,7 @@ func TestFeedServiceItemMarkdown(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AddFeed: %v", err)
 	}
-	items, err := svc.ListItems(ctx, feed.ID)
+	items, err := svc.ListItems(ctx, feed.ID, 100, 0)
 	if err != nil {
 		t.Fatalf("ListItems: %v", err)
 	}

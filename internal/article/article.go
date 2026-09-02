@@ -86,8 +86,13 @@ func extractViaReadability(link string) (string, error) {
 	return sanitizeAndConvert(buf.String(), resp.Request.URL.String())
 }
 
+// Some feeds double-escape <br> tags — unescape just this pattern, not the
+// whole input, so genuine escaped-HTML examples in article prose survive.
+var doubleEscapedBR = regexp.MustCompile(`&lt;br\s*/?&gt;`)
+
 // sanitizeAndConvert resolves relative URLs in htmlInput against baseURL.
 func sanitizeAndConvert(htmlInput, baseURL string) (string, error) {
+	htmlInput = doubleEscapedBR.ReplaceAllString(htmlInput, "<br>")
 	clean := sanitizePolicy.Sanitize(htmlInput)
 
 	domain := domainOf(baseURL)

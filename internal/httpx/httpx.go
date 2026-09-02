@@ -14,7 +14,7 @@ const (
 
 	DefaultTimeout = 15 * time.Second
 
-	MaxBytes = 10 << 20 // bounds a misbehaving server, not real feed sizes
+	MaxBytes = 30 << 20 // bounds a misbehaving server, not real feed sizes — some podcast feeds with hundreds of episodes exceed 10MB
 )
 
 // FetchCapped refuses bodies over maxBytes, checked by actual length read.

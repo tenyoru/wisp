@@ -280,7 +280,7 @@
         text-decoration: none;
         cursor: pointer;
 
-        &:hover { background: var(--surface); }
+        &:hover { color: var(--accent); }
         &.is-current { background: var(--surface); }
     }
 }

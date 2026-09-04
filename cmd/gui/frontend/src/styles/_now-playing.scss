@@ -136,6 +136,7 @@
         -webkit-appearance: none;
         -moz-appearance: none;
         appearance: none;
+        height: 16px;
         background: transparent;
         outline: none;
         cursor: pointer;
@@ -175,6 +176,22 @@
             cursor: pointer;
         }
 
+    }
+}
+
+.now-playing:hover .now-playing-scrub input[type="range"] {
+    &::-webkit-slider-runnable-track,
+    &::-moz-range-track,
+    &::-moz-range-progress { height: 5px; }
+
+    &::-webkit-slider-thumb {
+        width: 14px;
+        height: 14px;
+        margin-top: -4.5px;
+    }
+    &::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
     }
 }
 

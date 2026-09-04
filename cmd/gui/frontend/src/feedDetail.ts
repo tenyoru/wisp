@@ -1,16 +1,14 @@
-import { Events } from "@wailsio/runtime";
+import { Events, Browser, Clipboard } from "@wailsio/runtime";
 import { FeedService } from "../bindings/wisp/cmd/gui";
 import { FeedKind, type Feed, type Item } from "../bindings/wisp/internal/api";
 import { el, requireEl } from "./dom";
 import { renderFeedIcon } from "./avatar";
 import { loadItems, formatPubDate } from "./items";
-import { renderMarkdown } from "./markdown";
+import { renderMarkdown, type TocHeading } from "./markdown";
 import { deleteFeed, refreshFeed, loadFeeds } from "./feedList";
 import { createViewGroup } from "./views";
 import { setStatus } from "./status";
 import * as player from "./player";
-
-const containerEl = requireEl<HTMLDivElement>("app-container");
 
 const feedViews = createViewGroup([
     requireEl<HTMLDivElement>("feed-list-panel"),
@@ -29,7 +27,12 @@ const editUrlInput = requireEl<HTMLInputElement>("feed-edit-url");
 const editStatusEl = requireEl<HTMLParagraphElement>("feed-edit-status");
 const itemsEl = requireEl<HTMLUListElement>("feed-detail-items");
 
-const postBackBtn = requireEl<HTMLButtonElement>("post-detail-back");
+const postNavEl = requireEl<HTMLDivElement>("post-nav");
+const postBackBtn = requireEl<HTMLButtonElement>("post-nav-back");
+const postTocBtn = requireEl<HTMLButtonElement>("post-nav-toc");
+const postCopyBtn = requireEl<HTMLButtonElement>("post-nav-copy");
+const postShareEl = requireEl<HTMLDivElement>("post-share-menu");
+const postTocBackdrop = requireEl<HTMLDivElement>("post-toc-backdrop");
 const postTitleEl = requireEl<HTMLHeadingElement>("post-detail-title");
 const postMetaEl = requireEl<HTMLParagraphElement>("post-detail-meta");
 const postBodyEl = requireEl<HTMLDivElement>("post-detail-body");
@@ -58,6 +61,8 @@ function renderFeed(feed: Feed): void {
 
 export async function openFeedDetail(feedId: number): Promise<void> {
     currentFeedId = feedId;
+    closeOverlays();
+    postNavEl.hidden = true;
     feedViews.show("detail");
     setEditStatus("", false);
 
@@ -112,6 +117,56 @@ Events.On("feed-refreshed", async (evt) => {
 let postRequestId = 0;
 let currentPostItem: Item | null = null;
 let currentDownloadStatusEl: HTMLElement | null = null;
+function closeToc(): void {
+    postTocBtn.setAttribute("aria-expanded", "false");
+    postTocEl.hidden = true;
+}
+
+function closeShare(): void {
+    postCopyBtn.setAttribute("aria-expanded", "false");
+    postShareEl.hidden = true;
+}
+
+function closeOverlays(): void {
+    closeToc();
+    closeShare();
+    postTocBackdrop.hidden = true;
+}
+
+function itemUrl(item: Item | null): string {
+    return item?.link || item?.audioUrl || "";
+}
+
+function displayUrl(link: string): string {
+    try {
+        const u = new URL(link);
+        return (u.host + u.pathname).replace(/\/$/, "") || u.host;
+    } catch {
+        return link;
+    }
+}
+
+function setToc(headings: TocHeading[]): void {
+    closeOverlays();
+    const hasToc = headings.length > 1;
+    if (hasToc) postTocBtn.removeAttribute("aria-disabled");
+    else postTocBtn.setAttribute("aria-disabled", "true");
+    if (!hasToc) {
+        postTocEl.replaceChildren();
+        return;
+    }
+    postTocEl.replaceChildren(
+        ...headings.map((h) => {
+            const link = el("a", { href: `#${h.id}`, className: `post-toc-l${h.level}`, textContent: h.text });
+            link.addEventListener("click", (e) => {
+                e.preventDefault();
+                closeOverlays();
+                document.getElementById(h.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+            return link;
+        }),
+    );
+}
 
 function audioSrc(item: Item): string {
     if (!item.downloadFilename) return item.audioUrl;
@@ -194,20 +249,7 @@ async function loadShowNotes(item: Item, requestId: number): Promise<void> {
 
     const { html, toc } = renderMarkdown(md);
     notesEl.innerHTML = html;
-    if (toc.length > 1) {
-        postTocEl.hidden = false;
-        containerEl.classList.add("is-wide");
-        postTocEl.replaceChildren(
-            ...toc.map((h) => {
-                const link = el("a", { href: `#${h.id}`, className: `post-toc-l${h.level}`, textContent: h.text });
-                link.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    document.getElementById(h.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                });
-                return link;
-            }),
-        );
-    }
+    setToc(toc);
 
     function removeShowNotes(): void {
         notesEl.previousElementSibling?.remove();
@@ -238,15 +280,20 @@ export async function openPostDetail(item: Item): Promise<void> {
     feedViews.show("post");
     const requestId = ++postRequestId;
 
+    currentPostItem = item;
+    currentDownloadStatusEl = null;
+    postNavEl.hidden = false;
+    postCopyBtn.hidden = false;
+    postTocBtn.textContent = item.link ? displayUrl(item.link) : (item.title || "");
+    postTocBtn.setAttribute("aria-disabled", "true");
+    const backTo = titleEl.textContent?.trim();
+    postBackBtn.setAttribute("aria-label", backTo ? `Back to ${backTo}` : "Back");
+    closeOverlays();
+    postTocEl.replaceChildren();
+
     postTitleEl.textContent = item.title || item.link;
     const kindLabel = item.audioUrl ? "Podcast" : "Article";
     postMetaEl.textContent = [kindLabel, formatPubDate(item.pubDate)].filter(Boolean).join(" · ");
-    postTocEl.hidden = true;
-    postTocEl.replaceChildren();
-    containerEl.classList.remove("is-wide");
-
-    currentPostItem = null;
-    currentDownloadStatusEl = null;
 
     if (item.audioUrl) {
         postBodyEl.replaceChildren(renderPodcastPlayer(item));
@@ -271,25 +318,80 @@ export async function openPostDetail(item: Item): Promise<void> {
     }
     const { html, toc } = renderMarkdown(md);
     postBodyEl.innerHTML = html;
-    if (toc.length > 1) {
-        postTocEl.hidden = false;
-        containerEl.classList.add("is-wide");
-        postTocEl.replaceChildren(
-            ...toc.map((h) => {
-                const link = el("a", { href: `#${h.id}`, className: `post-toc-l${h.level}`, textContent: h.text });
-                link.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    document.getElementById(h.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                });
-                return link;
-            }),
-        );
-    }
+    setToc(toc);
 }
 
-postBackBtn.addEventListener("click", () => {
-    containerEl.classList.remove("is-wide");
+function closePostDetail(): void {
+    closeOverlays();
+    postNavEl.hidden = true;
     feedViews.show("detail");
+}
+
+postBackBtn.addEventListener("click", closePostDetail);
+
+postTocBtn.addEventListener("click", () => {
+    if (!postTocEl.children.length) return;
+    if (postTocEl.hidden) {
+        closeShare();
+        postTocBtn.setAttribute("aria-expanded", "true");
+        postTocBackdrop.hidden = false;
+        postTocEl.hidden = false;
+    } else {
+        closeOverlays();
+    }
+});
+
+postCopyBtn.addEventListener("click", () => {
+    if (!itemUrl(currentPostItem)) return;
+    if (postShareEl.hidden) {
+        closeToc();
+        postCopyBtn.setAttribute("aria-expanded", "true");
+        postTocBackdrop.hidden = false;
+        postShareEl.hidden = false;
+    } else {
+        closeOverlays();
+    }
+});
+
+postShareEl.addEventListener("click", async (e) => {
+    const action = (e.target as HTMLElement).closest<HTMLElement>("[data-share]")?.dataset.share;
+    const item = currentPostItem;
+    const url = itemUrl(item);
+    if (!action || !item || !url) return;
+    closeOverlays();
+    if (action === "copy") {
+        try {
+            await Clipboard.SetText(url);
+        } catch {
+            setStatus("Couldn't copy link.", true);
+        }
+        return;
+    }
+    if (action === "open") {
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return;
+            await Browser.OpenURL(parsed);
+        } catch (err) {
+            setStatus(`Couldn't open link: ${err}`, true);
+        }
+        return;
+    }
+    if (action === "share") {
+        try {
+            if (navigator.share) await navigator.share({ title: item.title || url, url });
+            else await Clipboard.SetText(url);
+        } catch (err) {
+            if (err instanceof Error && err.name === "AbortError") return;
+            setStatus(`Couldn't share: ${err}`, true);
+        }
+    }
+});
+
+postTocBackdrop.addEventListener("click", closeOverlays);
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeOverlays();
 });
 
 player.setNavigationHandlers({

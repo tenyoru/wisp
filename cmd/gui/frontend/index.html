@@ -27,6 +27,28 @@
 </nav>
 
 <div id="content-shell">
+<div id="post-nav" class="post-nav" hidden>
+    <div class="post-nav-start">
+        <button id="post-nav-back" type="button" class="post-nav-btn" aria-label="Back">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 4.5L7 10L12.5 15.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+    </div>
+    <div class="post-nav-center">
+        <button id="post-nav-toc" type="button" class="post-nav-btn post-nav-url" aria-label="Table of contents" aria-expanded="false" aria-controls="post-detail-toc"></button>
+        <nav id="post-detail-toc" class="post-toc" aria-label="Table of contents" hidden></nav>
+    </div>
+    <div class="post-nav-end">
+        <button id="post-nav-copy" type="button" class="post-nav-btn" aria-label="Link" aria-expanded="false" aria-controls="post-share-menu">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="15" cy="10" r="2" fill="currentColor"/></svg>
+        </button>
+        <div id="post-share-menu" class="post-share" hidden>
+            <button type="button" class="post-share-item" data-share="copy">Copy link</button>
+            <button type="button" class="post-share-item" data-share="open">Open in browser</button>
+            <button type="button" class="post-share-item" data-share="share">Share</button>
+        </div>
+    </div>
+</div>
+<div id="post-toc-backdrop" class="post-toc-backdrop" hidden></div>
 <main id="main-scroll">
 <div id="app-container" class="container">
     <section id="view-timeline" class="view" data-view="timeline" hidden>
@@ -93,11 +115,9 @@
         </div>
 
         <div id="post-detail-panel" data-view="post" hidden>
-            <button id="post-detail-back" type="button" class="link-btn feed-detail-back">← Back</button>
             <h1 id="post-detail-title" class="post-detail-title"></h1>
             <p id="post-detail-meta" class="post-detail-meta"></p>
             <div id="post-detail-body" class="item-preview"></div>
-            <nav id="post-detail-toc" class="post-toc" aria-label="Table of contents" hidden></nav>
         </div>
     </section>
 

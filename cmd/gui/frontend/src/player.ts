@@ -113,6 +113,7 @@ audioEl.addEventListener("timeupdate", () => {
     if (!seeking && !audioEl.seeking) currentTimeEl.textContent = formatTime(audioEl.currentTime);
     if (!seeking && audioEl.duration) {
         seekEl.value = String((audioEl.currentTime / audioEl.duration) * 1000);
+        seekEl.style.setProperty("--seek", `${Number(seekEl.value) / 10}%`);
     }
 });
 
@@ -135,6 +136,7 @@ audioEl.addEventListener("loadedmetadata", () => {
 
 seekEl.addEventListener("input", () => {
     seeking = true;
+    seekEl.style.setProperty("--seek", `${Number(seekEl.value) / 10}%`);
     if (audioEl.duration) currentTimeEl.textContent = formatTime((Number(seekEl.value) / 1000) * audioEl.duration);
 });
 seekEl.addEventListener("change", () => {

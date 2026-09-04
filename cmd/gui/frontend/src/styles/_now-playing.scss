@@ -142,12 +142,17 @@
 
         &::-webkit-slider-runnable-track {
             height: 3px;
-            background: var(--border);
+            background: linear-gradient(to right, var(--accent) var(--seek, 0%), var(--border) var(--seek, 0%));
             border-radius: 2px;
         }
         &::-moz-range-track {
             height: 3px;
             background: var(--border);
+            border-radius: 2px;
+        }
+        &::-moz-range-progress {
+            height: 3px;
+            background: var(--accent);
             border-radius: 2px;
         }
 

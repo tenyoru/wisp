@@ -1,4 +1,5 @@
 import "./style.scss";
+import "./scrollbar";
 import "./sidebar";
 import "./addFeed";
 import "./discoverPanel";

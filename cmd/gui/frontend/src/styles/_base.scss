@@ -37,6 +37,30 @@ body {
     min-height: 0;
     overflow-y: auto;
     padding-bottom: 88px;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+}
+
+.scroll-thumb {
+    position: absolute;
+    right: 4px;
+    width: 6px;
+    border-radius: 3px;
+    background: var(--muted);
+    opacity: 0.45;
+    z-index: 4;
+    cursor: pointer;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+
+    &[hidden] { display: none; }
+    &:hover { opacity: 0.7; }
+}
+
+html.is-dragging-scroll * {
+    -webkit-user-select: none !important;
+    user-select: none !important;
 }
 
 .container {

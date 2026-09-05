@@ -36,7 +36,7 @@ func podcastDir(podcastName string) string {
 	return sanitizeName(podcastName)
 }
 
-func episodePath(podcastName, episodeName, audioURL string) string {
+func episodePath(podcastName, episodeName, audioURL string) string { // "/"-joined; FromSlash before disk access
 	ext := path.Ext(strings.SplitN(audioURL, "?", 2)[0])
 	switch ext {
 	case "":

@@ -11,9 +11,6 @@ body {
     height: 100dvh;
     display: flex;
     flex-direction: column;
-    /* App, not a document — nothing selectable/draggable by default.
-       <img> still needs an explicit no-drag override elsewhere; browsers
-       ignore user-select for drag. */
     -webkit-user-select: none;
     user-select: none;
 }

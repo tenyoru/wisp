@@ -1,7 +1,7 @@
 import { Events } from "@wailsio/runtime";
 import { FeedService } from "../bindings/wisp/cmd/gui";
 import { FeedKind, type Feed } from "../bindings/wisp/internal/api";
-import { el, requireEl } from "./dom";
+import { el, requireEl, REFRESH_CHANGED } from "./dom";
 import { setStatus } from "./status";
 import { renderFeedIcon } from "./avatar";
 import { openFeedDetail } from "./feedDetail";
@@ -10,6 +10,16 @@ const refreshingIds = new Set<number>();
 
 const listEl = requireEl<HTMLUListElement>("feed-list");
 const refreshAllBtn = requireEl<HTMLButtonElement>("refresh-all-btn");
+const refreshBanner = requireEl<HTMLParagraphElement>("refresh-banner");
+
+export function isRefreshing(id: number): boolean {
+    return refreshingIds.has(id);
+}
+
+function pingRefreshing(): void {
+    refreshBanner.hidden = refreshingIds.size === 0;
+    document.dispatchEvent(new Event(REFRESH_CHANGED));
+}
 
 interface RowEntry {
     li: HTMLLIElement;
@@ -17,7 +27,7 @@ interface RowEntry {
     titleEl: HTMLDivElement;
     metaEl: HTMLDivElement;
     refreshBtn: HTMLButtonElement;
-    lastIconKey: string;
+    lastIconKey: string; // no wrapper span: WebKitGTK doesn't box display:contents
 }
 
 const rowElements = new Map<number, RowEntry>();
@@ -93,8 +103,7 @@ async function updateFeedRow(entry: RowEntry, feed: Feed): Promise<void> {
     let itemCount = 0;
     try {
         itemCount = await FeedService.ItemCount(feed.id);
-    } catch {
-    }
+    } catch { /* row still shows */ }
     entry.metaEl.textContent = `${kindLabel} · ${itemCount} item${itemCount === 1 ? "" : "s"}`;
 
     const isRefreshing = refreshingIds.has(feed.id);
@@ -171,17 +180,19 @@ export async function deleteFeed(id: number): Promise<void> {
 
 export async function refreshFeed(id: number): Promise<void> {
     refreshingIds.add(id);
+    pingRefreshing();
     await loadFeeds();
     try {
         await FeedService.RefreshFeed(id);
     } catch (err) {
         refreshingIds.delete(id);
+        pingRefreshing();
         setStatus(`Couldn't refresh feed: ${err}`, true);
         await loadFeeds();
     }
 }
 
-refreshAllBtn.addEventListener("click", async () => {
+export async function refreshAllFeeds(): Promise<void> {
     let feeds: Feed[];
     try {
         feeds = await FeedService.ListFeeds();
@@ -189,23 +200,31 @@ refreshAllBtn.addEventListener("click", async () => {
         setStatus(`Failed to load feeds: ${err}`, true);
         return;
     }
-    if (!feeds || feeds.length === 0) return;
+    if (!feeds || feeds.length === 0) {
+        setStatus("No feeds to refresh.", false);
+        return;
+    }
 
     for (const feed of feeds) refreshingIds.add(feed.id);
+    pingRefreshing();
     await loadFeeds();
 
     try {
         await FeedService.RefreshAllFeeds();
     } catch (err) {
         for (const feed of feeds) refreshingIds.delete(feed.id);
+        pingRefreshing();
         setStatus(`Couldn't refresh feeds: ${err}`, true);
         await loadFeeds();
     }
-});
+}
+
+refreshAllBtn.addEventListener("click", () => { void refreshAllFeeds(); });
 
 Events.On("feed-refreshed", async (evt) => {
     const result = evt.data;
     refreshingIds.delete(result.feedId);
+    pingRefreshing();
     if (result.error) {
         setStatus(`Refresh failed: ${result.error}`, true);
     } else if (result.feed) {

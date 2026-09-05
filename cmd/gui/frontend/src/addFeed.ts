@@ -26,8 +26,7 @@ form.addEventListener("submit", async (e) => {
         setStatus(`Added "${feed.title || feed.url}".`, false);
         await loadFeeds();
         return;
-    } catch {
-    } finally {
+    } catch { /* fall through to discovery */ } finally {
         submitBtn.disabled = false;
     }
 

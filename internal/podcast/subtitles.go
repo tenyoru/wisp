@@ -13,11 +13,11 @@ var (
 	voiceTag    = regexp.MustCompile(`(?i)^<v(?:\.[\w-]+)*\s+([^>]+)>\s*`)
 )
 
-const minParagraphLen = 280
+const minParagraphLen = 280 // floor; break only at a sentence boundary past this
 
 type cue struct {
-	start   float64 // seconds, from the cue's own timing line
-	speaker string  // empty when the source has no WebVTT <v> voice tags
+	start   float64
+	speaker string
 	text    string
 }
 

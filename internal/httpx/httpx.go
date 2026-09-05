@@ -13,7 +13,7 @@ const (
 
 	DefaultTimeout = 15 * time.Second
 
-	MaxBytes = 30 << 20 // bounds a misbehaving server, not real feed sizes — some podcast feeds with hundreds of episodes exceed 10MB
+	MaxBytes = 30 << 20 // some podcast feeds exceed 10MB
 )
 
 func FetchCapped(ctx context.Context, url string, maxBytes int64) (body []byte, contentType string, err error) {

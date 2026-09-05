@@ -1,25 +1,24 @@
 import { Events, Browser, Clipboard } from "@wailsio/runtime";
 import { FeedService } from "../bindings/wisp/cmd/gui";
 import { FeedKind, type Feed, type Item } from "../bindings/wisp/internal/api";
-import { el, requireEl } from "./dom";
+import { el, requireEl, REFRESH_CHANGED } from "./dom";
 import { renderFeedIcon } from "./avatar";
 import { loadItems, formatPubDate } from "./items";
 import { renderMarkdown, type TocHeading } from "./markdown";
-import { deleteFeed, refreshFeed, loadFeeds } from "./feedList";
+import { deleteFeed, refreshFeed, refreshAllFeeds, loadFeeds, isRefreshing } from "./feedList";
 import { createViewGroup } from "./views";
 import { setStatus } from "./status";
 import * as player from "./player";
 
+const postPanel = requireEl<HTMLDivElement>("post-detail-panel");
 const feedViews = createViewGroup([
     requireEl<HTMLDivElement>("feed-list-panel"),
     requireEl<HTMLDivElement>("feed-detail-panel"),
-    requireEl<HTMLDivElement>("post-detail-panel"),
+    postPanel,
 ]);
-const backBtn = requireEl<HTMLButtonElement>("feed-detail-back");
 const iconSlot = requireEl<HTMLDivElement>("feed-detail-icon");
 const titleEl = requireEl<HTMLHeadingElement>("feed-detail-title");
 const metaEl = requireEl<HTMLParagraphElement>("feed-detail-meta");
-const refreshBtn = requireEl<HTMLButtonElement>("feed-detail-refresh");
 const deleteBtn = requireEl<HTMLButtonElement>("feed-detail-delete");
 const editForm = requireEl<HTMLFormElement>("feed-edit-form");
 const editTitleInput = requireEl<HTMLInputElement>("feed-edit-title");
@@ -30,7 +29,9 @@ const itemsEl = requireEl<HTMLUListElement>("feed-detail-items");
 const postNavEl = requireEl<HTMLDivElement>("post-nav");
 const postBackBtn = requireEl<HTMLButtonElement>("post-nav-back");
 const postTocBtn = requireEl<HTMLButtonElement>("post-nav-toc");
+const navSpin = requireEl<HTMLElement>("nav-refresh-spin");
 const postCopyBtn = requireEl<HTMLButtonElement>("post-nav-copy");
+const postEditBtn = requireEl<HTMLButtonElement>("post-nav-edit");
 const postShareEl = requireEl<HTMLDivElement>("post-share-menu");
 const postTocBackdrop = requireEl<HTMLDivElement>("post-toc-backdrop");
 const postTitleEl = requireEl<HTMLHeadingElement>("post-detail-title");
@@ -39,6 +40,7 @@ const postBodyEl = requireEl<HTMLDivElement>("post-detail-body");
 const postTocEl = requireEl<HTMLElement>("post-detail-toc");
 
 let currentFeedId: number | null = null;
+let currentFeed: Feed | null = null;
 
 function setEditStatus(message: string, isError: boolean): void {
     if (!message) {
@@ -51,6 +53,7 @@ function setEditStatus(message: string, isError: boolean): void {
 }
 
 function renderFeed(feed: Feed): void {
+    currentFeed = feed;
     iconSlot.replaceChildren(renderFeedIcon(feed));
     titleEl.textContent = feed.title || feed.url;
     const kindLabel = feed.kind === FeedKind.FeedKindPodcast ? "Podcast" : "Article";
@@ -59,10 +62,25 @@ function renderFeed(feed: Feed): void {
     editUrlInput.value = feed.url;
 }
 
+function showFeedNav(feed: Feed): void {
+    postNavEl.hidden = false;
+    postCopyBtn.hidden = false;
+    postTocBtn.textContent = displayUrl(feed.url);
+    postTocBtn.setAttribute("aria-disabled", "true");
+    postEditBtn.hidden = false;
+    postBackBtn.setAttribute("aria-label", "Back");
+    closeOverlays();
+    postTocEl.replaceChildren();
+    syncNavSpin();
+}
+
+function syncNavSpin(): void {
+    navSpin.hidden = currentFeedId === null || !isRefreshing(currentFeedId);
+}
+
 export async function openFeedDetail(feedId: number): Promise<void> {
     currentFeedId = feedId;
     closeOverlays();
-    postNavEl.hidden = true;
     feedViews.show("detail");
     setEditStatus("", false);
 
@@ -74,19 +92,18 @@ export async function openFeedDetail(feedId: number): Promise<void> {
         return;
     }
     renderFeed(feed);
+    showFeedNav(feed);
     await loadItems(itemsEl, feedId);
 }
 
 function closeFeedDetail(): void {
     currentFeedId = null;
+    currentFeed = null;
+    closeOverlays();
+    postNavEl.hidden = true;
+    navSpin.hidden = true;
     feedViews.show("list");
 }
-
-backBtn.addEventListener("click", closeFeedDetail);
-
-refreshBtn.addEventListener("click", () => {
-    if (currentFeedId !== null) refreshFeed(currentFeedId);
-});
 
 deleteBtn.addEventListener("click", async () => {
     if (currentFeedId === null) return;
@@ -112,6 +129,7 @@ Events.On("feed-refreshed", async (evt) => {
     if (currentFeedId === null || result.feedId !== currentFeedId || result.error) return;
     if (result.feed) renderFeed(result.feed);
     await loadItems(itemsEl, currentFeedId);
+    if (!postPanel.hidden && currentPostItem) await openPostDetail(currentPostItem);
 });
 
 let postRequestId = 0;
@@ -286,6 +304,8 @@ export async function openPostDetail(item: Item): Promise<void> {
     postCopyBtn.hidden = false;
     postTocBtn.textContent = item.link ? displayUrl(item.link) : (item.title || "");
     postTocBtn.setAttribute("aria-disabled", "true");
+    postEditBtn.hidden = true;
+    syncNavSpin();
     const backTo = titleEl.textContent?.trim();
     postBackBtn.setAttribute("aria-label", backTo ? `Back to ${backTo}` : "Back");
     closeOverlays();
@@ -323,11 +343,14 @@ export async function openPostDetail(item: Item): Promise<void> {
 
 function closePostDetail(): void {
     closeOverlays();
-    postNavEl.hidden = true;
     feedViews.show("detail");
+    if (currentFeed) showFeedNav(currentFeed);
 }
 
-postBackBtn.addEventListener("click", closePostDetail);
+postBackBtn.addEventListener("click", () => {
+    if (postPanel.hidden) closeFeedDetail();
+    else closePostDetail();
+});
 
 postTocBtn.addEventListener("click", () => {
     if (!postTocEl.children.length) return;
@@ -341,8 +364,31 @@ postTocBtn.addEventListener("click", () => {
     }
 });
 
+function navShare(): { title: string; url: string } | null {
+    if (!postPanel.hidden) {
+        const url = itemUrl(currentPostItem);
+        if (currentPostItem && url) return { title: currentPostItem.title || url, url };
+        return null;
+    }
+    if (currentFeed) return { title: currentFeed.title || currentFeed.url, url: currentFeed.url };
+    return null;
+}
+
+function refreshCurrent(): void {
+    if (document.getElementById("view-feeds")?.hidden) return;
+    if (currentFeedId !== null) void refreshFeed(currentFeedId);
+    else void refreshAllFeeds();
+}
+
+function openEditFeed(): void {
+    if (!postPanel.hidden) closePostDetail();
+    const panel = editForm.closest("details");
+    if (panel) panel.open = true;
+    editTitleInput.focus();
+}
+
 postCopyBtn.addEventListener("click", () => {
-    if (!itemUrl(currentPostItem)) return;
+    if (!currentFeed && !currentPostItem) return;
     if (postShareEl.hidden) {
         closeToc();
         postCopyBtn.setAttribute("aria-expanded", "true");
@@ -355,13 +401,23 @@ postCopyBtn.addEventListener("click", () => {
 
 postShareEl.addEventListener("click", async (e) => {
     const action = (e.target as HTMLElement).closest<HTMLElement>("[data-share]")?.dataset.share;
-    const item = currentPostItem;
-    const url = itemUrl(item);
-    if (!action || !item || !url) return;
+    if (!action) return;
+    if (action === "refresh") {
+        closeOverlays();
+        refreshCurrent();
+        return;
+    }
+    if (action === "edit") {
+        closeOverlays();
+        openEditFeed();
+        return;
+    }
+    const target = navShare();
+    if (!target) return;
     closeOverlays();
     if (action === "copy") {
         try {
-            await Clipboard.SetText(url);
+            await Clipboard.SetText(target.url);
         } catch {
             setStatus("Couldn't copy link.", true);
         }
@@ -369,7 +425,7 @@ postShareEl.addEventListener("click", async (e) => {
     }
     if (action === "open") {
         try {
-            const parsed = new URL(url);
+            const parsed = new URL(target.url);
             if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return;
             await Browser.OpenURL(parsed);
         } catch (err) {
@@ -379,8 +435,8 @@ postShareEl.addEventListener("click", async (e) => {
     }
     if (action === "share") {
         try {
-            if (navigator.share) await navigator.share({ title: item.title || url, url });
-            else await Clipboard.SetText(url);
+            if (navigator.share) await navigator.share({ title: target.title, url: target.url });
+            else await Clipboard.SetText(target.url);
         } catch (err) {
             if (err instanceof Error && err.name === "AbortError") return;
             setStatus(`Couldn't share: ${err}`, true);
@@ -392,7 +448,19 @@ postTocBackdrop.addEventListener("click", closeOverlays);
 
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeOverlays();
+    if (e.key !== "r" && e.key !== "R") return;
+    const inField = e.target instanceof HTMLElement && !!e.target.closest("input, textarea, select, [contenteditable]");
+    if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        refreshCurrent();
+        return;
+    }
+    if (inField || e.altKey) return;
+    e.preventDefault();
+    refreshCurrent();
 });
+
+document.addEventListener(REFRESH_CHANGED, syncNavSpin);
 
 player.setNavigationHandlers({
     openItem: (item) => openPostDetail(item),

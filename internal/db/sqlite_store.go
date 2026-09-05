@@ -47,7 +47,7 @@ func Open(path string) (*SQLiteStore, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", path, err)
 	}
-	dbConn.SetMaxOpenConns(1)
+	dbConn.SetMaxOpenConns(1) // SQLite serializes writers; no extra mutex
 
 	for _, pragma := range []string{
 		"PRAGMA foreign_keys = ON",
@@ -323,7 +323,7 @@ func (s *SQLiteStore) ListItems(ctx context.Context, feedID *int64, limit, offse
 		query += " WHERE feed_id = ?"
 		args = append(args, *feedID)
 	}
-	query += " ORDER BY pub_date DESC, id DESC LIMIT ? OFFSET ?"
+	query += " ORDER BY pub_date DESC, id DESC LIMIT ? OFFSET ?" // id DESC: stable paging on equal pub_date
 	args = append(args, limit, offset)
 
 	rows, err := s.db.QueryContext(ctx, query, args...)

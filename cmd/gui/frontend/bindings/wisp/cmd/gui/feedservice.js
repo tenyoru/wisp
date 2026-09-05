@@ -137,8 +137,6 @@ export function RefreshAllFeeds() {
 }
 
 /**
- * RefreshFeed queues a background refetch and returns immediately; the
- * result arrives later via the "feed-refreshed" event.
  * @param {number} feedID
  * @returns {$CancellablePromise<void>}
  */

@@ -74,7 +74,7 @@ func TestFetchAndParse_RespectsCallerTimeout(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		<-unblock // never responds within the test's timeout
 	}))
-	defer srv.Close()
+	defer srv.Close() // LIFO: unblock before Close() waits on the in-flight request
 	defer close(unblock)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)

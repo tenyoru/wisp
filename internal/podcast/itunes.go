@@ -10,7 +10,7 @@ import (
 	"wisp/internal/httpx"
 )
 
-var itunesSearchURL = "https://itunes.apple.com/search"
+var itunesSearchURL = "https://itunes.apple.com/search" // var so tests can swap it
 
 const itunesResultLimit = 25
 

@@ -60,7 +60,7 @@ func discoverIconHref(ctx context.Context, siteURL string) (string, bool) {
 
 type linkMatch struct {
 	Href  string
-	Title string // the link's title="..." attribute, if any
+	Title string
 }
 
 func findAllLinkHrefs(ctx context.Context, siteURL string, match func(attrs map[string]string) bool) ([]linkMatch, error) {

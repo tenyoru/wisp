@@ -25,7 +25,7 @@ func init() {
 	application.RegisterEvent[EpisodeDownloadEvent](eventEpisodeDownload)
 }
 
-const refreshTimeout = 30 * time.Second
+const refreshTimeout = 30 * time.Second // not RefreshFeed's ctx: that's gone before the goroutine finishes
 
 const downloadTimeout = 30 * time.Minute
 
@@ -46,7 +46,7 @@ type EpisodeDownloadEvent struct {
 
 type FeedService struct {
 	store db.Store
-	emit func(event string, data ...any)
+	emit  func(event string, data ...any) // tests inject this; live app sets it in main.go
 }
 
 func (s *FeedService) emitEvent(event string, data ...any) {

@@ -27,6 +27,7 @@
 </nav>
 
 <div id="content-shell">
+<p id="refresh-banner" class="refresh-banner" hidden><span class="refresh-spin">↻</span> Refreshing…</p>
 <div id="post-nav" class="post-nav" hidden>
     <div class="post-nav-start">
         <button id="post-nav-back" type="button" class="post-nav-btn" aria-label="Back">
@@ -34,6 +35,7 @@
         </button>
     </div>
     <div class="post-nav-center">
+        <span id="nav-refresh-spin" class="refresh-spin nav-refresh-spin" hidden aria-hidden="true">↻</span>
         <button id="post-nav-toc" type="button" class="post-nav-btn post-nav-url" aria-label="Table of contents" aria-expanded="false" aria-controls="post-detail-toc"></button>
         <nav id="post-detail-toc" class="post-toc" aria-label="Table of contents" hidden></nav>
     </div>
@@ -42,6 +44,8 @@
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="15" cy="10" r="2" fill="currentColor"/></svg>
         </button>
         <div id="post-share-menu" class="post-share" hidden>
+            <button type="button" class="post-share-item" data-share="refresh">Refresh</button>
+            <button type="button" class="post-share-item" data-share="edit" id="post-nav-edit">Edit feed</button>
             <button type="button" class="post-share-item" data-share="copy">Copy link</button>
             <button type="button" class="post-share-item" data-share="open">Open in browser</button>
             <button type="button" class="post-share-item" data-share="share">Share</button>
@@ -83,13 +87,10 @@
         </div>
 
         <div id="feed-detail-panel" data-view="detail" hidden>
-            <button id="feed-detail-back" type="button" class="link-btn feed-detail-back">← Feeds</button>
-
             <div class="feed-detail-head">
                 <div id="feed-detail-icon" class="feed-detail-icon"></div>
                 <h1 id="feed-detail-title" class="title"></h1>
                 <p id="feed-detail-meta" class="subtitle"></p>
-                <button id="feed-detail-refresh" type="button" class="link-btn">Refresh</button>
             </div>
 
             <details class="discover-panel">

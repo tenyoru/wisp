@@ -21,7 +21,7 @@ export const audioEl = new Audio();
 const PLAY_ICON = '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M6 4L16 10L6 16V4Z" fill="currentColor"/></svg>';
 const PAUSE_ICON = '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="5" y="4" width="4" height="12" rx="1" fill="currentColor"/><rect x="11" y="4" width="4" height="12" rx="1" fill="currentColor"/></svg>';
 
-let onOpenItem: ((item: Item) => void) | null = null;
+let onOpenItem: ((item: Item) => void) | null = null; // set after load; avoids player↔feedDetail import cycle
 let onOpenFeed: ((feedId: number) => void) | null = null;
 
 export function setNavigationHandlers(handlers: { openItem: (item: Item) => void; openFeed: (feedId: number) => void }): void {
@@ -47,8 +47,7 @@ async function loadArtwork(feedId: number): Promise<void> {
         if (feedId !== currentFeedId) return;
         artworkEl.replaceChildren(renderFeedIcon(feed));
         showEl.textContent = feed.title || feed.url;
-    } catch {
-    }
+    } catch { /* leave placeholder */ }
 }
 
 export function play(item: Item, src: string, atSeconds?: number): void {
@@ -121,7 +120,7 @@ audioEl.addEventListener("seeked", () => {
     currentTimeEl.textContent = formatTime(audioEl.currentTime);
 });
 
-let seekWatchdog: number | undefined;
+let seekWatchdog: number | undefined; // hang-seek if the server has no HTTP range support
 audioEl.addEventListener("seeking", () => {
     window.clearTimeout(seekWatchdog);
     seekWatchdog = window.setTimeout(() => {

@@ -27,7 +27,7 @@ func main() {
 	assetMux.Handle("/episodes/", http.StripPrefix("/episodes/", http.FileServer(http.Dir(paths.EpisodesDir()))))
 	assetMux.Handle("/", application.AssetFileServerFS(assets))
 
-	feedSvc := &FeedService{
+	feedSvc := &FeedService{ // emit is lazy: application.Get() is invalid until New() returns
 		store: store,
 		emit: func(event string, data ...any) {
 			application.Get().Event.Emit(event, data...)

@@ -80,7 +80,7 @@ func extractViaReadability(link string) (string, error) {
 	return sanitizeAndConvert(buf.String(), resp.Request.URL.String())
 }
 
-var doubleEscapedBR = regexp.MustCompile(`&lt;br\s*/?&gt;`)
+var doubleEscapedBR = regexp.MustCompile(`&lt;br\s*/?&gt;`) // only this pattern; leave other escaped HTML alone
 
 func sanitizeAndConvert(htmlInput, baseURL string) (string, error) {
 	htmlInput = doubleEscapedBR.ReplaceAllString(htmlInput, "<br>")

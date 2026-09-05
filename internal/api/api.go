@@ -19,22 +19,22 @@ type Feed struct {
 type Item struct {
 	ID               int64  `json:"id"`
 	FeedID           int64  `json:"feedId"`
-	GUID             string `json:"guid"` // stable per-item identity; item.Link is often absent or shared across items
+	GUID             string `json:"guid"` // stable identity; Link is often absent or shared
 	Title            string `json:"title"`
 	Link             string `json:"link"`
-	PubDate          string `json:"pubDate"`                    // RFC3339, best-effort from the feed
-	AudioURL         string `json:"audioUrl"`                   // empty => article, not a podcast episode
-	Description      string `json:"description"`                // short teaser, always feed-supplied
-	ContentEncoded   string `json:"contentEncoded"`             // full body if the feed included one; empty otherwise
-	DownloadFilename string `json:"downloadFilename,omitempty"` // empty => not downloaded
-	TranscriptURL    string `json:"transcriptUrl,omitempty"`    // podcast:transcript, empty if the feed doesn't publish one
-	TranscriptType   string `json:"transcriptType,omitempty"`   // its MIME type, e.g. text/vtt, application/srt
+	PubDate          string `json:"pubDate"`
+	AudioURL         string `json:"audioUrl"` // empty => article
+	Description      string `json:"description"`
+	ContentEncoded   string `json:"contentEncoded"`
+	DownloadFilename string `json:"downloadFilename,omitempty"`
+	TranscriptURL    string `json:"transcriptUrl,omitempty"`
+	TranscriptType   string `json:"transcriptType,omitempty"`
 }
 
 type ParsedFeed struct {
 	Title    string
 	Kind     FeedKind
-	SiteLink string // channel website link, distinct from the feed URL; may be empty
+	SiteLink string // channel website, not the feed URL
 	Items    []Item
 }
 

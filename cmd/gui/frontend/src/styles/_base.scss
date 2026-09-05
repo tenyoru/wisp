@@ -36,26 +36,39 @@ body {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding-bottom: 88px;
     scrollbar-width: none;
     &::-webkit-scrollbar { display: none; }
 }
 
+#content-shell:has(#now-playing-bar:not([hidden])) #main-scroll {
+    padding-bottom: 88px;
+}
+
 .scroll-thumb {
     position: absolute;
-    right: 4px;
-    width: 6px;
+    right: 3px;
+    width: 4px;
     border-radius: 3px;
     background: var(--muted);
-    opacity: 0.45;
+    opacity: 0;
     z-index: 4;
     cursor: pointer;
     touch-action: none;
+    pointer-events: none;
+    transition: opacity 0.15s linear, width 0.15s ease;
     -webkit-user-select: none;
     user-select: none;
 
     &[hidden] { display: none; }
-    &:hover { opacity: 0.7; }
+    &.is-on {
+        opacity: 0.45;
+        pointer-events: auto;
+    }
+    &:hover, html.is-dragging-scroll & {
+        width: 8px;
+        opacity: 0.75;
+        pointer-events: auto;
+    }
 }
 
 html.is-dragging-scroll * {

@@ -12,11 +12,15 @@ function inset(): { top: number; bottom: number } {
     };
 }
 
+let hideTimer = 0;
+let drag: { y: number; scroll: number } | null = null;
+
 function sync(): void {
     const { scrollTop, scrollHeight, clientHeight } = scroller;
     const overflow = scrollHeight - clientHeight;
     if (overflow <= 0) {
         thumb.hidden = true;
+        thumb.classList.remove("is-on");
         return;
     }
     const { top, bottom } = inset();
@@ -27,18 +31,28 @@ function sync(): void {
     thumb.style.top = `${top + (scrollTop / overflow) * (trackH - thumbH)}px`;
 }
 
-scroller.addEventListener("scroll", sync, { passive: true });
+function ping(): void {
+    if (thumb.hidden) return;
+    thumb.classList.add("is-on");
+    window.clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => {
+        if (!drag) thumb.classList.remove("is-on");
+    }, 900);
+}
+
+scroller.addEventListener("scroll", () => { sync(); ping(); }, { passive: true });
 window.addEventListener("resize", sync);
-new ResizeObserver(sync).observe(scroller);
+new ResizeObserver(sync).observe(requireEl("app-container"));
 new MutationObserver(sync).observe(nav, { attributes: true, attributeFilter: ["hidden"] });
 new MutationObserver(sync).observe(player, { attributes: true, attributeFilter: ["hidden"] });
 
-let drag: { y: number; scroll: number } | null = null;
 thumb.addEventListener("pointerdown", (e) => {
     e.preventDefault();
     window.getSelection()?.removeAllRanges();
     document.documentElement.classList.add("is-dragging-scroll");
     drag = { y: e.clientY, scroll: scroller.scrollTop };
+    thumb.classList.add("is-on");
+    window.clearTimeout(hideTimer);
     thumb.setPointerCapture(e.pointerId);
 });
 thumb.addEventListener("pointermove", (e) => {
@@ -53,6 +67,7 @@ thumb.addEventListener("pointermove", (e) => {
 thumb.addEventListener("pointerup", () => {
     drag = null;
     document.documentElement.classList.remove("is-dragging-scroll");
+    ping();
 });
 
 sync();

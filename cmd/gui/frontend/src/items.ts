@@ -49,8 +49,9 @@ export async function loadItems(itemsEl: HTMLUListElement, feedId: number): Prom
     itemsEl.replaceChildren(el("li", { className: "item-row-status", textContent: "Loading…" }));
 
     let offset = 0;
+    let total: number | null = null;
     let isLoading = false;
-    const sentinel = el("li", { className: "item-row-status", textContent: "Loading…" });
+    const tail = el("li", { className: "item-row-tail" });
 
     const observer = new IntersectionObserver(
         (entries) => {
@@ -60,12 +61,35 @@ export async function loadItems(itemsEl: HTMLUListElement, feedId: number): Prom
     );
     activeObserver = observer;
 
+    function sizeTail(hasMore: boolean): void {
+        observer.disconnect();
+        if (!hasMore) {
+            tail.remove();
+            return;
+        }
+        const tailH = tail.isConnected ? tail.offsetHeight : 0;
+        const avg = offset ? (itemsEl.offsetHeight - tailH) / offset : 80;
+        const remaining = total != null ? Math.max(0, total - offset) : 0;
+        tail.style.height = remaining ? `${remaining * avg}px` : "1px";
+        itemsEl.append(tail);
+        observer.observe(tail);
+    }
+
     async function loadPage(): Promise<void> {
         if (isLoading || token !== loadToken) return;
         isLoading = true;
         let page: Item[];
         try {
-            page = (await FeedService.ListItems(feedId, PAGE_SIZE, offset)) ?? [];
+            if (offset === 0) {
+                const [p, n] = await Promise.all([
+                    FeedService.ListItems(feedId, PAGE_SIZE, offset),
+                    FeedService.ItemCount(feedId).catch(() => null),
+                ]);
+                page = p ?? [];
+                total = n;
+            } else {
+                page = (await FeedService.ListItems(feedId, PAGE_SIZE, offset)) ?? [];
+            }
         } catch (err) {
             isLoading = false;
             if (token !== loadToken) return;
@@ -73,7 +97,7 @@ export async function loadItems(itemsEl: HTMLUListElement, feedId: number): Prom
             if (offset === 0) {
                 itemsEl.replaceChildren(el("li", { className: "item-row-status", textContent: `Failed to load items: ${err}` }));
             } else {
-                sentinel.remove();
+                tail.remove();
             }
             return;
         }
@@ -87,16 +111,10 @@ export async function loadItems(itemsEl: HTMLUListElement, feedId: number): Prom
         }
 
         if (offset === 0) itemsEl.replaceChildren();
-        sentinel.remove();
+        tail.remove();
         itemsEl.append(...page.map(buildItemRow));
         offset += page.length;
-
-        if (page.length < PAGE_SIZE) {
-            observer.disconnect();
-        } else {
-            itemsEl.append(sentinel);
-            observer.observe(sentinel);
-        }
+        sizeTail(page.length >= PAGE_SIZE);
     }
 
     await loadPage();

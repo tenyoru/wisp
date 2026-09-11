@@ -92,7 +92,7 @@ func TestSetFeedIcon(t *testing.T) {
 		t.Fatalf("UpsertFeed: %v", err)
 	}
 
-	icon := []byte{0x89, 0x50, 0x4e, 0x47} // fake PNG magic bytes, contents don't matter here
+	icon := []byte{0x89, 0x50, 0x4e, 0x47}
 	if err := store.SetFeedIcon(ctx, feed.ID, icon, "image/png"); err != nil {
 		t.Fatalf("SetFeedIcon: %v", err)
 	}

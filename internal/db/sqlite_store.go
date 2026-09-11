@@ -94,6 +94,7 @@ func Open(path string) (*SQLiteStore, error) {
 	return &SQLiteStore{db: dbConn}, nil
 }
 
+// Recreate items: UNIQUE(feed_id, link) → UNIQUE(feed_id, guid). SQLite can't ALTER UNIQUE.
 func migrateItemsGUID(db *sql.DB) error {
 	rows, err := db.Query("PRAGMA table_info(items)")
 	if err != nil {
@@ -268,6 +269,7 @@ func (s *SQLiteStore) UpsertItems(ctx context.Context, feedID int64, items []api
 	}
 	defer tx.Rollback()
 
+	// OR IGNORE: target guid may already exist; skip rather than abort the refresh.
 	reconcile, err := tx.PrepareContext(ctx, `
 		UPDATE OR IGNORE items SET guid = ? WHERE feed_id = ? AND link = ? AND link != '' AND guid != ?`)
 	if err != nil {

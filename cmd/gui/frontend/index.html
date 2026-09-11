@@ -28,7 +28,7 @@
 
 <div id="content-shell">
 <p id="refresh-banner" class="refresh-banner" hidden><span class="refresh-spin">↻</span> Refreshing…</p>
-<div id="post-nav" class="post-nav" hidden>
+<div id="post-nav" class="post-nav glass" hidden>
     <div class="post-nav-start">
         <button id="post-nav-back" type="button" class="post-nav-btn" aria-label="Back">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 4.5L7 10L12.5 15.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -37,13 +37,13 @@
     <div class="post-nav-center">
         <span id="nav-refresh-spin" class="refresh-spin nav-refresh-spin" hidden aria-hidden="true">↻</span>
         <button id="post-nav-toc" type="button" class="post-nav-btn post-nav-url" aria-label="Table of contents" aria-expanded="false" aria-controls="post-detail-toc"></button>
-        <nav id="post-detail-toc" class="post-toc" aria-label="Table of contents" hidden></nav>
+        <nav id="post-detail-toc" class="post-toc glass" aria-label="Table of contents" hidden></nav>
     </div>
     <div class="post-nav-end">
         <button id="post-nav-copy" type="button" class="post-nav-btn" aria-label="Link" aria-expanded="false" aria-controls="post-share-menu">
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="15" cy="10" r="2" fill="currentColor"/></svg>
         </button>
-        <div id="post-share-menu" class="post-share" hidden>
+        <div id="post-share-menu" class="post-share glass" hidden>
             <button type="button" class="post-share-item" data-share="refresh">Refresh</button>
             <button type="button" class="post-share-item" data-share="edit" id="post-nav-edit">Edit feed</button>
             <button type="button" class="post-share-item" data-share="copy">Copy link</button>
@@ -195,7 +195,8 @@
 </main>
 <div id="scroll-thumb" class="scroll-thumb" hidden></div>
 
-<div id="now-playing-bar" class="now-playing" hidden>
+<div id="now-playing-bar" class="now-playing glass" hidden>
+    <canvas id="now-playing-viz" class="now-playing-viz" aria-hidden="true"></canvas>
     <div class="now-playing-track">
         <div id="now-playing-artwork" class="now-playing-artwork"></div>
         <div class="now-playing-info">

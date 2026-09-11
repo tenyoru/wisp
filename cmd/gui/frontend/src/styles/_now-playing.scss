@@ -11,15 +11,19 @@
     gap: var(--space-16);
     padding: var(--space-8) var(--space-24) var(--space-4);
     border-top: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg) 70%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
 
     &[hidden] { display: none; }
 
     @media (min-width: 1600px) {
         grid-template-columns: minmax(160px, 1fr) minmax(0, 900px) minmax(80px, 1fr);
     }
+}
+
+.now-playing-track,
+.now-playing-transport,
+.now-playing-extra {
+    position: relative;
+    z-index: 1;
 }
 
 .now-playing-track {
@@ -122,7 +126,7 @@
     gap: var(--space-8);
     width: 100%;
     color: var(--muted);
-    font-size: var(--text-xs);
+    font-size: 0.625rem;
     font-variant-numeric: tabular-nums;
 
     #now-playing-current, #now-playing-duration {

@@ -41,9 +41,6 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: stretch;
     border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg) 70%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
 
     &[hidden] { display: none; }
 }
@@ -192,9 +189,7 @@
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg) 70%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    --glass-blur: 20px;
 
     &[hidden] { display: none; }
 }

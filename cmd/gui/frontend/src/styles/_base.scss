@@ -1,5 +1,11 @@
 * { box-sizing: border-box; }
 
+.glass {
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+    backdrop-filter: blur(var(--glass-blur, 2px));
+    -webkit-backdrop-filter: blur(var(--glass-blur, 2px));
+}
+
 html, body {
     margin: 0;
     background: var(--bg);

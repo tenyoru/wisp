@@ -37,8 +37,7 @@
     right: 0;
     top: 0;
     z-index: 8;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    display: flex;
     align-items: stretch;
     border-bottom: 1px solid var(--border);
 
@@ -55,7 +54,9 @@
 
 .post-nav-start,
 .post-nav-end {
-    aspect-ratio: 1;
+    flex: none;
+    font-size: var(--text-xs);
+    width: calc(1.4em + var(--space-8));
     z-index: 2;
     transition: border-color 0.22s ease;
 
@@ -99,6 +100,7 @@
 }
 
 .post-nav-center {
+    flex: 1;
     justify-content: center;
     min-width: 0;
 }
@@ -217,6 +219,12 @@
         font-size: var(--text-sm);
     }
 
+    .post-nav-start,
+    .post-nav-end {
+        font-size: var(--text-sm);
+        width: calc(1.4em + var(--space-16));
+    }
+
     .post-nav-start svg,
     .post-nav-end svg {
         width: 18px;
@@ -253,11 +261,7 @@
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-
-    // Cheap here: these are open briefly and nothing scrolls underneath them.
-    background: color-mix(in srgb, var(--bg) 70%, transparent);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    --glass-blur: 20px;
 
     &[hidden] { display: none; }
 }

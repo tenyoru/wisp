@@ -1,9 +1,9 @@
 * { box-sizing: border-box; }
 
-// No backdrop-filter here: post-nav and now-playing sit over #main-scroll, so a blur
-// re-composites every scrolled frame. Popovers opt back in (see _feed-detail.scss).
 .glass {
-    background: var(--bg);
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+    backdrop-filter: blur(var(--glass-blur, 2px));
+    -webkit-backdrop-filter: blur(var(--glass-blur, 2px));
 }
 
 html, body {

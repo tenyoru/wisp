@@ -13,6 +13,7 @@ import (
 	"wisp/internal/article"
 	"wisp/internal/db"
 	"wisp/internal/feed"
+	"wisp/internal/paths"
 	"wisp/internal/podcast"
 )
 
@@ -255,6 +256,18 @@ func (s *FeedService) DownloadEpisode(ctx context.Context, itemID int64) error {
 		s.emitEvent(eventEpisodeDownload, EpisodeDownloadEvent{ItemID: itemID, Done: true, DownloadFilename: relPath})
 	}()
 	return nil
+}
+
+func (s *FeedService) GetSettings(context.Context) (api.Settings, error) {
+	return api.ReadSettings(paths.Settings)
+}
+
+func (s *FeedService) SaveSettings(_ context.Context, settings api.Settings) (api.Settings, error) {
+	settings = settings.Clamp()
+	if err := api.WriteSettings(paths.Settings, settings); err != nil {
+		return api.Settings{}, err
+	}
+	return settings, nil
 }
 
 func (s *FeedService) DeleteDownload(ctx context.Context, itemID int64) error {

@@ -3,6 +3,7 @@ import "./scrollbar";
 import "./sidebar";
 import "./addFeed";
 import "./discoverPanel";
+import "./settings";
 import { loadFeeds } from "./feedList";
 
 const BASE = 20;

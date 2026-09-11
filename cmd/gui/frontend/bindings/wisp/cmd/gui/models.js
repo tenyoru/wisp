@@ -73,9 +73,6 @@ export class EpisodeDownloadEvent {
     }
 }
 
-/**
- * FeedRefreshResult is the payload of the "feed-refreshed" event.
- */
 export class FeedRefreshResult {
     /**
      * Creates a new FeedRefreshResult instance.

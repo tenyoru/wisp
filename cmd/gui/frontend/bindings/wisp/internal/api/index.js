@@ -7,5 +7,6 @@ export {
     Feed,
     FeedKind,
     Item,
-    PodcastResult
+    PodcastResult,
+    Settings
 } from "./models.js";

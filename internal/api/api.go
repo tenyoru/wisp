@@ -1,5 +1,6 @@
 package api
 
+// FeedKind is inferred from content, not trusted from caller input.
 type FeedKind int
 
 const (
@@ -48,4 +49,30 @@ type PodcastResult struct {
 type DiscoveredFeed struct {
 	Title string `json:"title"`
 	URL   string `json:"url"`
+}
+
+type Settings struct {
+	Theme              string  `json:"theme"`         // "dark" or "light"
+	PlaybackSpeed      float64 `json:"playbackSpeed"` // 0.5–3
+	WhisperModel       string  `json:"whisperModel"`  // tiny, base, small, medium, large
+	CloudTranscription bool    `json:"cloudTranscription"`
+}
+
+func DefaultSettings() Settings {
+	return Settings{Theme: "dark", PlaybackSpeed: 1, WhisperModel: "base"}
+}
+
+func (s Settings) Clamp() Settings {
+	if s.Theme != "light" {
+		s.Theme = "dark"
+	}
+	if s.PlaybackSpeed < 0.5 || s.PlaybackSpeed > 3 {
+		s.PlaybackSpeed = 1
+	}
+	switch s.WhisperModel {
+	case "tiny", "base", "small", "medium", "large":
+	default:
+		s.WhisperModel = "base"
+	}
+	return s
 }

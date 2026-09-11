@@ -35,6 +35,17 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+:root[data-theme="light"] {
+    --bg: #f6f3eb;
+    --surface: #ffffff;
+    --border: #ddd6c8;
+    --text: #1b1a17;
+    --muted: #6f6b63;
+    --error: #c4453c;
+    --accent: #8a7349;
+    color-scheme: light;
+}
+
 @media (min-width: 1600px) {
     :root { font-size: 24px; }
 }

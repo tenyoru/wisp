@@ -9,6 +9,7 @@ import (
 var (
 	DB       string
 	Episodes string
+	Settings string
 )
 
 func Resolve() error {
@@ -23,6 +24,12 @@ func Resolve() error {
 		return err
 	}
 	Episodes = filepath.Dir(placeholder)
+
+	cfg, err := xdg.DataFile("wisp/settings.json")
+	if err != nil {
+		return err
+	}
+	Settings = cfg
 	return nil
 }
 

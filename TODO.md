@@ -8,7 +8,7 @@
 ## internal/api
 - [x] `FeedKind`, `Feed`, `Item`, `ParsedFeed`
 - [x] `PodcastResult` (iTunes search), `DiscoveredFeed` (site feed-link discovery)
-- [ ] `Settings` (theme, playback speed, whisper model size, cloud-transcription toggle)
+- [x] `Settings` (theme, playback speed, whisper model size, cloud-transcription toggle)
 - [ ] `ItemStatus` (new/downloading/transcribing/ready) — needed once `internal/media` exists
 - [ ] `Segment` (transcript segment) — needed once transcription exists
 - [ ] `Item.Saved`/`Item.Liked` (bool) + `Item.LikedAt` — liked sorts by like recency, not pub date, so "most recently liked" surfaces first
@@ -38,7 +38,9 @@ article" and "finding a podcast" don't grow inside the feed package.
 - [x] `Store` interface + `SQLiteStore` (`modernc.org/sqlite`, no cgo)
 - [x] Feeds/items schema, upsert-by-url / upsert-by-(feed_id,link), cascade delete
 - [x] `DefaultPath` — XDG data dir (`wisp-go/wisp.db`, deliberately separate from the old Rust build's incompatible schema)
-- [ ] Settings table
+- [x] Settings — deliberately *not* a DB table: they're a flat blob read once at
+  startup, so they live in `settings.json` under the XDG data dir
+  (`internal/api/settings.go`), keeping the DB for feed/item data only
 - [ ] Item status column
 - [ ] Local Markdown cache on disk, not a DB column — opened articles land under an XDG cache dir, capped at the last 100 opened (LRU eviction); saved/liked items are cached indefinitely, cleared only when the user explicitly clears the cache
 - [ ] `saved`/`liked`/`liked_at` columns on items + `SetItemSaved`/`SetItemLiked` + a liked-items query ordered by `liked_at DESC` (separate from `ListItems`' `pub_date DESC`)
@@ -86,9 +88,9 @@ opened. Scoping only below, nothing implemented.
 - [ ] Keybindings for common actions (refresh, add feed, navigate items, play/pause podcast, etc.) — none exist yet, everything is mouse/tap-only
 - [ ] Consistent loading/empty/error visual language — every feature invented its own inline text pattern as it was built (`.item-row-status`, `.status`, `.empty-state`, ad-hoc `textContent` in a few places)
 - [ ] Dedicated article reading view — currently an inline expand under the item row; no reading-width constraint, font-size control, or "close/back" affordance
-- [ ] Settings/preferences UI — doesn't exist; blocks on `api.Settings` (not yet defined either)
+- [x] Settings/preferences UI — theme, playback speed, whisper model, cloud-transcription toggle
 - [ ] Real app icon/branding — `cmd/gui/build/appicon.png` etc. are still Wails' default template assets
-- [ ] Light theme / theme toggle — `color-scheme: dark` is hardcoded, no light palette exists
+- [x] Light theme / theme toggle — `data-theme="light"` palette on `:root`
 
 ### TUI (`cmd/cli`)
 - [ ] Doesn't exist yet — `main()` is a one-line placeholder. First design decision: navigation model (vim-style modal nav like lazygit/k9s, vs. simple list+enter)

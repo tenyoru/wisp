@@ -6,9 +6,6 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
-/**
- * DiscoveredFeed is one feed link found by internal/feed.DiscoverFeedURLs.
- */
 export class DiscoveredFeed {
     /**
      * Creates a new DiscoveredFeed instance.
@@ -44,9 +41,6 @@ export class DiscoveredFeed {
     }
 }
 
-/**
- * Feed is a subscribed feed as stored in internal/db.
- */
 export class Feed {
     /**
      * Creates a new Feed instance.
@@ -152,7 +146,7 @@ export class Item {
         }
         if (!("guid" in $$source)) {
             /**
-             * stable per-item identity; item.Link is often absent or shared across items
+             * stable identity; Link is often absent or shared
              * @member
              * @type {string}
              */
@@ -174,7 +168,6 @@ export class Item {
         }
         if (!("pubDate" in $$source)) {
             /**
-             * RFC3339, best-effort from the feed
              * @member
              * @type {string}
              */
@@ -182,7 +175,7 @@ export class Item {
         }
         if (!("audioUrl" in $$source)) {
             /**
-             * empty => article, not a podcast episode
+             * empty => article
              * @member
              * @type {string}
              */
@@ -190,7 +183,6 @@ export class Item {
         }
         if (!("description" in $$source)) {
             /**
-             * short teaser, always feed-supplied
              * @member
              * @type {string}
              */
@@ -198,7 +190,6 @@ export class Item {
         }
         if (!("contentEncoded" in $$source)) {
             /**
-             * full body if the feed included one; empty otherwise
              * @member
              * @type {string}
              */
@@ -206,7 +197,6 @@ export class Item {
         }
         if (/** @type {any} */(false)) {
             /**
-             * empty => not downloaded
              * @member
              * @type {string | undefined}
              */
@@ -214,7 +204,6 @@ export class Item {
         }
         if (/** @type {any} */(false)) {
             /**
-             * podcast:transcript, empty if the feed doesn't publish one
              * @member
              * @type {string | undefined}
              */
@@ -222,7 +211,6 @@ export class Item {
         }
         if (/** @type {any} */(false)) {
             /**
-             * its MIME type, e.g. text/vtt, application/srt
              * @member
              * @type {string | undefined}
              */
@@ -243,9 +231,6 @@ export class Item {
     }
 }
 
-/**
- * PodcastResult is one match from an iTunes podcast search.
- */
 export class PodcastResult {
     /**
      * Creates a new PodcastResult instance.
@@ -292,5 +277,57 @@ export class PodcastResult {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new PodcastResult(/** @type {Partial<PodcastResult>} */($$parsedSource));
+    }
+}
+
+export class Settings {
+    /**
+     * Creates a new Settings instance.
+     * @param {Partial<Settings>} [$$source = {}] - The source object to create the Settings.
+     */
+    constructor($$source = {}) {
+        if (!("theme" in $$source)) {
+            /**
+             * "dark" or "light"
+             * @member
+             * @type {string}
+             */
+            this["theme"] = "";
+        }
+        if (!("playbackSpeed" in $$source)) {
+            /**
+             * 0.5–3
+             * @member
+             * @type {number}
+             */
+            this["playbackSpeed"] = 0;
+        }
+        if (!("whisperModel" in $$source)) {
+            /**
+             * tiny, base, small, medium, large
+             * @member
+             * @type {string}
+             */
+            this["whisperModel"] = "";
+        }
+        if (!("cloudTranscription" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["cloudTranscription"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Settings instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {Settings}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Settings(/** @type {Partial<Settings>} */($$parsedSource));
     }
 }

@@ -127,7 +127,69 @@
     </section>
 
     <section id="view-settings" class="view" data-view="settings" hidden>
-        <p class="empty-state">Settings is coming soon.</p>
+        <h1 class="title">Settings</h1>
+        <form id="settings-form" class="settings-form">
+            <section class="settings-group">
+                <h2>Appearance</h2>
+                <label class="settings-row">
+                    <span class="settings-copy">
+                        <span class="settings-name">Theme</span>
+                        <span class="settings-hint">Light or dark interface</span>
+                    </span>
+                    <span class="settings-select">
+                        <select id="settings-theme">
+                            <option value="dark">Dark</option>
+                            <option value="light">Light</option>
+                        </select>
+                    </span>
+                </label>
+            </section>
+            <section class="settings-group">
+                <h2>Playback</h2>
+                <label class="settings-row">
+                    <span class="settings-copy">
+                        <span class="settings-name">Speed</span>
+                        <span class="settings-hint">Default podcast playback rate</span>
+                    </span>
+                    <span class="settings-select">
+                        <select id="settings-speed">
+                            <option value="0.5">0.5×</option>
+                            <option value="0.75">0.75×</option>
+                            <option value="1">1×</option>
+                            <option value="1.25">1.25×</option>
+                            <option value="1.5">1.5×</option>
+                            <option value="1.75">1.75×</option>
+                            <option value="2">2×</option>
+                        </select>
+                    </span>
+                </label>
+            </section>
+            <section class="settings-group">
+                <h2>Transcription</h2>
+                <label class="settings-row">
+                    <span class="settings-copy">
+                        <span class="settings-name">Whisper model</span>
+                        <span class="settings-hint">Larger is slower and more accurate</span>
+                    </span>
+                    <span class="settings-select">
+                        <select id="settings-whisper">
+                            <option value="tiny">Tiny</option>
+                            <option value="base">Base</option>
+                            <option value="small">Small</option>
+                            <option value="medium">Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </span>
+                </label>
+                <label class="settings-row">
+                    <span class="settings-copy">
+                        <span class="settings-name">Cloud transcription</span>
+                        <span class="settings-hint">Use a remote API instead of on-device Whisper</span>
+                    </span>
+                    <input id="settings-cloud" type="checkbox" class="settings-toggle"/>
+                </label>
+            </section>
+        </form>
     </section>
 </div>
 </main>

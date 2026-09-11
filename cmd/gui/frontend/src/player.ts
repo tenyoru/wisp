@@ -53,16 +53,16 @@ async function loadArtwork(feedId: number): Promise<void> {
 export function play(item: Item, src: string, atSeconds?: number): void {
     const isNewItem = currentItem?.id !== item.id;
     if (isNewItem) {
-        audioEl.src = src;
         currentItem = item;
         titleEl.textContent = item.title || item.link;
         void loadArtwork(item.feedId);
         barEl.hidden = false;
+        audioEl.src = src;
+        if (atSeconds !== undefined) {
+            audioEl.addEventListener("loadedmetadata", () => { audioEl.currentTime = atSeconds; }, { once: true });
+        }
     }
-    if (atSeconds !== undefined) {
-        if (isNewItem) audioEl.addEventListener("loadedmetadata", () => { audioEl.currentTime = atSeconds; }, { once: true });
-        else audioEl.currentTime = atSeconds;
-    }
+    if (atSeconds !== undefined && !isNewItem) audioEl.currentTime = atSeconds;
     audioEl.play().catch((err) => setStatus(`Couldn't play episode: ${err}`, true));
 }
 

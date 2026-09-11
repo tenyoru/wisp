@@ -4,6 +4,7 @@ import "./sidebar";
 import "./addFeed";
 import "./discoverPanel";
 import "./settings";
+import "./visualizer";
 import { loadFeeds } from "./feedList";
 
 const BASE = 20;

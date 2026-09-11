@@ -1,5 +1,10 @@
 export const REFRESH_CHANGED = "wisp-refresh-changed"; // here, not feedList: feedList↔feedDetail TDZ cycle
 
+export const isWeb =
+    (location.protocol === "http:" || location.protocol === "https:")
+    && location.port !== "9245"
+    && location.hostname !== "wails.localhost";
+
 export function requireEl<T extends HTMLElement>(id: string): T {
     const found = document.getElementById(id);
     if (!found) throw new Error(`missing #${id}`);

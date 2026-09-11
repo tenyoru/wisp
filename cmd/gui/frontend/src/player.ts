@@ -17,6 +17,8 @@ const currentTimeEl = requireEl<HTMLSpanElement>("now-playing-current");
 const durationEl = requireEl<HTMLSpanElement>("now-playing-duration");
 
 export const audioEl = new Audio();
+audioEl.style.cssText = "position:absolute;width:0;height:0;opacity:0;pointer-events:none";
+document.body.append(audioEl);
 
 const PLAY_ICON = '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M6 4L16 10L6 16V4Z" fill="currentColor"/></svg>';
 const PAUSE_ICON = '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="5" y="4" width="4" height="12" rx="1" fill="currentColor"/><rect x="11" y="4" width="4" height="12" rx="1" fill="currentColor"/></svg>';

@@ -1,5 +1,6 @@
-import { requireEl } from "./dom";
+import { requireEl, isWeb } from "./dom";
 import { audioEl } from "./player";
+import { setStatus } from "./status";
 
 const canvas = requireEl<HTMLCanvasElement>("now-playing-viz");
 const barEl = requireEl<HTMLElement>("now-playing-bar");
@@ -34,14 +35,14 @@ function resize(): void {
     if (!w || !h) return;
 
     const dpr = window.devicePixelRatio || 1;
-    if (w === lastW && h === lastH && dpr === lastDpr) return; // assigning canvas.width wipes the bitmap
-    lastW = w;
-    lastH = h;
-    lastDpr = dpr;
-
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-    g?.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (w !== lastW || h !== lastH || dpr !== lastDpr) {
+        lastW = w;
+        lastH = h;
+        lastDpr = dpr;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        g?.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
 
     const c = canvas.getBoundingClientRect();
     const b = playBtn.getBoundingClientRect();
@@ -79,10 +80,10 @@ function sample(): void {
 
 function draw(): void {
     if (!g) return;
-    const dpr = window.devicePixelRatio || 1;
-    const w = canvas.width / dpr;
-    const h = canvas.height / dpr;
+    const w = lastW;
+    const h = lastH;
     g.clearRect(0, 0, w, h);
+    if (!w || !h || alpha < 0.02) return;
 
     g.beginPath();
     for (let i = 0; i < POINTS; i++) {
@@ -119,7 +120,7 @@ function frame(): void {
         running = false;
         alpha = 0;
         levels.fill(0);
-        g?.clearRect(0, 0, canvas.width, canvas.height);
+        g?.clearRect(0, 0, lastW, lastH);
         return;
     }
     requestAnimationFrame(frame);
@@ -133,10 +134,16 @@ tapEl.preload = "auto";
 
 function localSrc(): string | null {
     const src = audioEl.currentSrc || audioEl.src;
-    return src.startsWith(LOCAL) ? src : null;
+    if (!src) return null;
+    if (src.startsWith(LOCAL)) return src;
+    try {
+        if (new URL(src, location.href).pathname.startsWith("/play/")) return src;
+    } catch { /* ignore */ }
+    return null;
 }
 
 function syncTap(): void {
+    if (isWeb) return;
     const src = localSrc();
     if (!src) {
         tapEl.pause();
@@ -181,13 +188,19 @@ function attach(): boolean {
         const node = ctx.createAnalyser();
         node.fftSize = 512;
         node.smoothingTimeConstant = 0.75;
-        ctx.createMediaElementSource(tapEl).connect(node);
+        if (isWeb) {
+            ctx.createMediaElementSource(audioEl).connect(node);
+            node.connect(ctx.destination);
+        } else {
+            ctx.createMediaElementSource(tapEl).connect(node);
+        }
         bins = new Uint8Array(node.frequencyBinCount);
         analyser = node;
         resize();
         return true;
-    } catch {
+    } catch (err) {
         broken = true;
+        setStatus(`Visualizer: ${err}`, true);
         return false;
     }
 }
@@ -195,8 +208,8 @@ function attach(): boolean {
 audioEl.addEventListener("playing", () => {
     void ctx?.resume();
     syncTap();
-    if (!localSrc()) return;
-    if (!attach()) return;
+    resize();
+    attach();
     if (!running) {
         running = true;
         requestAnimationFrame(frame);

@@ -1,7 +1,7 @@
 import { Events, Browser, Clipboard } from "@wailsio/runtime";
 import { FeedService } from "../bindings/wisp/cmd/gui";
 import { FeedKind, type Feed, type Item } from "../bindings/wisp/internal/api";
-import { el, requireEl, REFRESH_CHANGED } from "./dom";
+import { el, requireEl, REFRESH_CHANGED, isWeb } from "./dom";
 import { renderFeedIcon } from "./avatar";
 import { loadItems, formatPubDate } from "./items";
 import { renderMarkdown, type TocHeading } from "./markdown";
@@ -187,7 +187,7 @@ function setToc(headings: TocHeading[]): void {
 }
 
 function audioSrc(item: Item): string {
-    return `http://127.0.0.1:9246/play/${item.id}`;
+    return isWeb ? `/play/${item.id}` : `http://127.0.0.1:9246/play/${item.id}`;
 }
 
 function formatBytes(n: number): string {
@@ -449,6 +449,7 @@ document.addEventListener("keydown", (e) => {
     if (e.key !== "r" && e.key !== "R") return;
     const inField = e.target instanceof HTMLElement && !!e.target.closest("input, textarea, select, [contenteditable]");
     if (e.ctrlKey || e.metaKey) {
+        if (isWeb) return;
         e.preventDefault();
         refreshCurrent();
         return;

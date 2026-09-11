@@ -31,7 +31,10 @@
 <div id="post-nav" class="post-nav glass" hidden>
     <div class="post-nav-start">
         <button id="post-nav-back" type="button" class="post-nav-btn" aria-label="Back">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M12.5 4.5L7 10L12.5 15.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                <path d="M12.5 4.5L7 10L12.5 15.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path class="back-tail" d="M8 10H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
         </button>
     </div>
     <div class="post-nav-center">
@@ -41,7 +44,11 @@
     </div>
     <div class="post-nav-end">
         <button id="post-nav-copy" type="button" class="post-nav-btn" aria-label="Link" aria-expanded="false" aria-controls="post-share-menu">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="5" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="15" cy="10" r="2" fill="currentColor"/></svg>
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                <circle class="dot-l" cx="5" cy="10" r="2" fill="currentColor"/>
+                <circle class="dot-m" cx="10" cy="10" r="2" fill="currentColor"/>
+                <circle class="dot-r" cx="15" cy="10" r="2" fill="currentColor"/>
+            </svg>
         </button>
         <div id="post-share-menu" class="post-share glass" hidden>
             <button type="button" class="post-share-item" data-share="refresh">Refresh</button>

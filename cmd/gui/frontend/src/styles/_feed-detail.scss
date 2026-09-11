@@ -53,9 +53,49 @@
     align-items: center;
 }
 
-.post-nav-start {
+.post-nav-start,
+.post-nav-end {
     aspect-ratio: 1;
+    z-index: 2;
+    transition: border-color 0.22s ease;
+
+    .post-nav-btn {
+        position: absolute;
+        inset: 0;
+        justify-content: center;
+        align-items: center;
+        transition: color 0.22s ease, left 0.22s ease, right 0.22s ease;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--border);
+        }
+    }
+}
+
+.post-nav-start {
     border-right: 1px solid var(--border);
+
+    &:has(:is(.post-nav-btn:hover, .post-nav-btn:focus-visible)) {
+        border-right-color: transparent;
+    }
+
+    .post-nav-btn::after { right: 0; }
+    .post-nav-btn:is(:hover, :focus-visible) {
+        right: -10px;
+        .back-tail { transform: scaleX(1); }
+    }
+
+    .back-tail {
+        transform-box: fill-box;
+        transform-origin: left center;
+        transform: scaleX(0);
+        transition: transform 0.22s ease;
+    }
 }
 
 .post-nav-center {
@@ -117,16 +157,26 @@
 }
 
 .post-nav-end {
-    aspect-ratio: 1;
     border-left: 1px solid var(--border);
-}
 
-.post-nav-start .post-nav-btn,
-.post-nav-end .post-nav-btn {
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    align-items: center;
+    &:has(:is(.post-nav-btn:hover, .post-nav-btn:focus-visible, .post-nav-btn[aria-expanded="true"])) {
+        border-left-color: transparent;
+    }
+
+    .post-nav-btn::after { left: 0; }
+    .post-nav-btn:is(:hover, :focus-visible, [aria-expanded="true"]) {
+        left: -10px;
+    }
+    .post-nav-btn:is(:hover, :focus-visible) {
+        .dot-l { transform: translateX(-2px); }
+        .dot-r { transform: translateX(2px); }
+    }
+
+    .dot-l, .dot-r {
+        transform-box: fill-box;
+        transform-origin: center;
+        transition: transform 0.22s ease;
+    }
 }
 
 .post-nav-btn {
@@ -144,6 +194,20 @@
     &[aria-disabled] {
         cursor: default;
         &:hover { color: var(--muted); }
+    }
+
+    svg { overflow: visible; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .post-nav-start,
+    .post-nav-end,
+    .post-nav-start .post-nav-btn,
+    .post-nav-end .post-nav-btn,
+    .post-nav-start .back-tail,
+    .post-nav-end .dot-l,
+    .post-nav-end .dot-r {
+        transition: none;
     }
 }
 

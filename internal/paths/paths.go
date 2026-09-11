@@ -9,6 +9,7 @@ import (
 var (
 	DB       string
 	Episodes string
+	Cache    string
 	Settings string
 )
 
@@ -30,6 +31,12 @@ func Resolve() error {
 		return err
 	}
 	Settings = cfg
+
+	keep, err := xdg.CacheFile(filepath.Join("wisp", ".keep"))
+	if err != nil {
+		return err
+	}
+	Cache = filepath.Dir(keep)
 	return nil
 }
 

@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	readability "codeberg.org/readeck/go-readability/v2"
@@ -17,6 +20,7 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 
 	"wisp/internal/httpx"
+	"wisp/internal/paths"
 )
 
 var sanitizePolicy = bluemonday.UGCPolicy()
@@ -32,6 +36,25 @@ var markdownConverter = converter.NewConverter(
 		strikethrough.NewStrikethroughPlugin(),
 	),
 )
+
+func Cached(itemID int64, fill func() (string, error)) (string, error) {
+	if paths.Cache == "" {
+		return fill()
+	}
+	p := filepath.Join(paths.Cache, "articles", strconv.FormatInt(itemID, 10)+".md")
+	if b, err := os.ReadFile(p); err == nil {
+		return string(b), nil
+	}
+	md, err := fill()
+	if err != nil {
+		return "", err
+	}
+	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+		return md, nil
+	}
+	_ = os.WriteFile(p, []byte(md), 0o644)
+	return md, nil
+}
 
 func ResolveArticleMarkdown(link, contentEncoded, description string) (string, error) {
 	if strings.TrimSpace(contentEncoded) != "" {

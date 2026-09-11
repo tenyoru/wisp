@@ -24,8 +24,15 @@ func main() {
 	}
 
 	assetMux := http.NewServeMux()
-	assetMux.Handle("/episodes/", http.StripPrefix("/episodes/", http.FileServer(http.Dir(paths.EpisodesDir()))))
 	assetMux.Handle("/", application.AssetFileServerFS(assets))
+
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/play/", withCORS(&playServer{store: store}))
+		if err := http.ListenAndServe(episodeListen, mux); err != nil {
+			log.Printf("wisp: episode server: %v", err)
+		}
+	}()
 
 	feedSvc := &FeedService{ // emit is lazy: application.Get() is invalid until New() returns
 		store: store,

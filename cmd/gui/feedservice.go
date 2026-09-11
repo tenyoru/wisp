@@ -200,15 +200,17 @@ func (s *FeedService) ItemMarkdown(ctx context.Context, itemID int64) (string, e
 	if item == nil {
 		return "", fmt.Errorf("no such item: %d", itemID)
 	}
-	if item.AudioURL != "" {
-		if item.TranscriptURL != "" {
-			if text, err := podcast.FetchTranscript(ctx, item.TranscriptURL, item.TranscriptType); err == nil && strings.TrimSpace(text) != "" {
-				return text, nil
+	return article.Cached(itemID, func() (string, error) {
+		if item.AudioURL != "" {
+			if item.TranscriptURL != "" {
+				if text, err := podcast.FetchTranscript(ctx, item.TranscriptURL, item.TranscriptType); err == nil && strings.TrimSpace(text) != "" {
+					return text, nil
+				}
 			}
+			return article.ResolveShowNotes(item.Link, item.ContentEncoded, item.Description)
 		}
-		return article.ResolveShowNotes(item.Link, item.ContentEncoded, item.Description)
-	}
-	return article.ResolveArticleMarkdown(item.Link, item.ContentEncoded, item.Description)
+		return article.ResolveArticleMarkdown(item.Link, item.ContentEncoded, item.Description)
+	})
 }
 
 func (s *FeedService) SearchPodcasts(ctx context.Context, term string) ([]api.PodcastResult, error) {

@@ -187,9 +187,7 @@ function setToc(headings: TocHeading[]): void {
 }
 
 function audioSrc(item: Item): string {
-    if (!item.downloadFilename) return item.audioUrl;
-    const encodedPath = item.downloadFilename.split("/").map(encodeURIComponent).join("/");
-    return `/episodes/${encodedPath}`;
+    return `http://127.0.0.1:9246/play/${item.id}`;
 }
 
 function formatBytes(n: number): string {

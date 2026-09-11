@@ -5,15 +5,26 @@ const thumb = requireEl<HTMLElement>("scroll-thumb");
 const nav = requireEl<HTMLElement>("post-nav");
 const player = requireEl<HTMLElement>("now-playing-bar");
 
+// offsetHeight forces layout, so the nav/player insets are cached until something resizes.
+let insetCache: { top: number; bottom: number } | null = null;
+
 function inset(): { top: number; bottom: number } {
-    return {
-        top: nav.hidden ? 8 : nav.offsetHeight + 4,
-        bottom: player.hidden ? 8 : player.offsetHeight + 4,
-    };
+    if (!insetCache) {
+        insetCache = {
+            top: nav.hidden ? 8 : nav.offsetHeight + 4,
+            bottom: player.hidden ? 8 : player.offsetHeight + 4,
+        };
+    }
+    return insetCache;
 }
 
 let hideTimer = 0;
 let drag: { y: number; scroll: number } | null = null;
+
+function invalidate(): void {
+    insetCache = null;
+    sync();
+}
 
 function sync(): void {
     const { scrollTop, scrollHeight, clientHeight } = scroller;
@@ -41,10 +52,10 @@ function ping(): void {
 }
 
 scroller.addEventListener("scroll", () => { sync(); ping(); }, { passive: true });
-window.addEventListener("resize", sync);
-new ResizeObserver(sync).observe(requireEl("app-container"));
-new MutationObserver(sync).observe(nav, { attributes: true, attributeFilter: ["hidden"] });
-new MutationObserver(sync).observe(player, { attributes: true, attributeFilter: ["hidden"] });
+window.addEventListener("resize", invalidate);
+new ResizeObserver(invalidate).observe(requireEl("app-container"));
+new MutationObserver(invalidate).observe(nav, { attributes: true, attributeFilter: ["hidden"] });
+new MutationObserver(invalidate).observe(player, { attributes: true, attributeFilter: ["hidden"] });
 
 thumb.addEventListener("pointerdown", (e) => {
     e.preventDefault();

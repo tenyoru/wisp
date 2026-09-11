@@ -253,7 +253,11 @@
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    --glass-blur: 20px;
+
+    // Cheap here: these are open briefly and nothing scrolls underneath them.
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 
     &[hidden] { display: none; }
 }

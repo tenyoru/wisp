@@ -24,12 +24,21 @@ let alpha = 0;
 let theme = "";
 let rgb = "212, 188, 139";
 
+let lastW = 0;
+let lastH = 0;
+let lastDpr = 0;
+
 function resize(): void {
     const w = barEl.clientWidth;
     const h = barEl.clientHeight;
     if (!w || !h) return;
 
     const dpr = window.devicePixelRatio || 1;
+    if (w === lastW && h === lastH && dpr === lastDpr) return; // assigning canvas.width wipes the bitmap
+    lastW = w;
+    lastH = h;
+    lastDpr = dpr;
+
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     g?.setTransform(dpr, 0, 0, dpr, 0, 0);

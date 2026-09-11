@@ -1,5 +1,6 @@
 import "./style.scss";
 import "./scrollbar";
+import "./linkDialog";
 import "./sidebar";
 import "./addFeed";
 import "./discoverPanel";

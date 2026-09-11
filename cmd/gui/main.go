@@ -23,12 +23,14 @@ func main() {
 		log.Fatalf("wisp: open db at %s: %v", paths.DB, err)
 	}
 
+	play := withCORS(&playServer{store: store})
 	assetMux := http.NewServeMux()
+	assetMux.Handle("/play/", play)
 	assetMux.Handle("/", application.AssetFileServerFS(assets))
 
 	go func() {
 		mux := http.NewServeMux()
-		mux.Handle("/play/", withCORS(&playServer{store: store}))
+		mux.Handle("/play/", play)
 		if err := http.ListenAndServe(episodeListen, mux); err != nil {
 			log.Printf("wisp: episode server: %v", err)
 		}

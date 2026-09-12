@@ -28,13 +28,7 @@ func main() {
 	assetMux.Handle("/play/", play)
 	assetMux.Handle("/", application.AssetFileServerFS(assets))
 
-	go func() {
-		mux := http.NewServeMux()
-		mux.Handle("/play/", play)
-		if err := http.ListenAndServe(episodeListen, mux); err != nil {
-			log.Printf("wisp: episode server: %v", err)
-		}
-	}()
+	go serveEpisodes(play)
 
 	feedSvc := &FeedService{ // emit is lazy: application.Get() is invalid until New() returns
 		store: store,

@@ -1,11 +1,13 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"wisp/internal/db"
 	"wisp/internal/paths"
@@ -14,8 +16,34 @@ import (
 
 const episodeListen = "127.0.0.1:9246"
 
+func playServerOurs() bool {
+	c := &http.Client{Timeout: 150 * time.Millisecond}
+	req, err := http.NewRequest(http.MethodOptions, "http://"+episodeListen+"/play/", nil)
+	if err != nil {
+		return false
+	}
+	resp, err := c.Do(req)
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+	return resp.Header.Get("X-Wisp-Play") != ""
+}
+
+func serveEpisodes(h http.Handler) {
+	if playServerOurs() {
+		return
+	}
+	mux := http.NewServeMux()
+	mux.Handle("/play/", h)
+	if err := http.ListenAndServe(episodeListen, mux); err != nil {
+		log.Printf("wisp: episode server: %v", err)
+	}
+}
+
 func withCORS(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Wisp-Play", "1")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "Range")
 		w.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges")
